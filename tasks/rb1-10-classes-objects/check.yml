@@ -5,23 +5,20 @@ format: 書き写し
 submission_dir: rb1-10-classes-objects
 
 judges:
-  - id: copy-run
-    type: copy_run
-    name: 写しの実行
-    submission: classes_and_objects_test.rb
-
-  - id: copy-assertions
-    type: assertion_count
-    name: 写しのアサーション数
-    submission: classes_and_objects_test.rb
-    min: 16
-    runs_min: 6
+  - id: copy-check
+    type: exercise_test
+    name: 写しの照合
+    test: copy_test/classes_and_objects_test.rb
+    load_paths:
+      - .
+    requires:
+      - classes_and_objects.rb
 
   - id: copy-format
     type: rubocop
     name: 写しの書式（RuboCop）
     submission_paths:
-      - classes_and_objects_test.rb
+      - classes_and_objects.rb
 
   - id: why
     type: why_diff

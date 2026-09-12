@@ -1,43 +1,10 @@
 # frozen_string_literal: true
 
-# 手本の底本（Ruby 4.0 の公式ドキュメント）。行に出てくる道具ごとに、それが載っている節を指す。
-#   == / equal? / eql?（同一性と等価性の違い）
-#     https://docs.ruby-lang.org/en/4.0/Object.html#method-i-eql-3F
-#   hash（eql? を上書きしたら hash も上書きする。[self.class, ...].hash の型）
-#     https://docs.ruby-lang.org/en/4.0/Object.html#method-i-hash
-#   Struct（書き換えられる値の入れ物）
-#     https://docs.ruby-lang.org/en/4.0/Struct.html
-#   Data（書き換えられない値オブジェクト）
-#     https://docs.ruby-lang.org/en/4.0/Data.html
-#   Set（eql? と hash で重複を判定する集合）
-#     https://docs.ruby-lang.org/en/4.0/Set.html
-
 require "minitest/autorun"
 
-Customer = Struct.new("Customer", :name, :address, :zip)
-
-Measure = Data.define(:amount, :unit)
-
-class Measurement
-  attr_reader :amount, :unit
-
-  def initialize(amount, unit)
-    @amount = amount
-    @unit = unit
-  end
-
-  def ==(other)
-    other.is_a?(self.class) && amount == other.amount && unit == other.unit
-  end
-
-  alias eql? ==
-
-  def hash
-    [self.class, amount, unit].hash
-  end
-end
-
-class ValueObjectsTest < Minitest::Test
+# 写しの照合テスト（教材が配る。読んでよい。写さない）。
+# 学習者の写し value_objects.rb（定義だけ）を読み込み、原典が示している呼び出しをここで行って確かめる。
+class Rb114ValueObjectsCopyTest < Minitest::Test
   def test_equal_asks_whether_it_is_the_same_object
     obj = "a"
     other = obj.dup
@@ -98,3 +65,5 @@ class ValueObjectsTest < Minitest::Test
     assert_equal 1, Set[Measurement.new(1, "m"), Measurement.new(1, "m")].size
   end
 end
+
+require "value_objects"

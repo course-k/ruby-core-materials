@@ -5,23 +5,20 @@ format: 書き写し
 submission_dir: rb1-13-modules-mixins
 
 judges:
-  - id: copy-run
-    type: copy_run
-    name: 写しの実行
-    submission: modules_test.rb
-
-  - id: copy-assertions
-    type: assertion_count
-    name: 写しのアサーション数
-    submission: modules_test.rb
-    min: 16
-    runs_min: 5
+  - id: copy-check
+    type: exercise_test
+    name: 写しの照合
+    test: copy_test/modules_test.rb
+    load_paths:
+      - .
+    requires:
+      - modules.rb
 
   - id: copy-format
     type: rubocop
     name: 写しの書式（RuboCop）
     submission_paths:
-      - modules_test.rb
+      - modules.rb
 
   - id: why
     type: why_diff

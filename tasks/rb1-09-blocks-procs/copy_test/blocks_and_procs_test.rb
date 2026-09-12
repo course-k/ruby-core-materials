@@ -1,45 +1,11 @@
 # frozen_string_literal: true
 
-# 手本の原本 — ブロックと Proc と lambda。
-#
-# 底本と、行の文言に現れる識別子が実在する節:
-#   Proc.new / call / .() / [] / クロージャであること（gen_times）/
-#   proc / lambda / ->(x) { } / lambda? /
-#   lambda と非 lambda の引数の厳しさの違い / return の違い /
-#   & による Symbol から Proc への変換（to_proc）/ & を通しても lambda の性質が残ること
-#     https://docs.ruby-lang.org/en/4.0/Proc.html
-#   & でブロックを受け取る / yield
-#     https://docs.ruby-lang.org/en/4.0/syntax/methods_rdoc.html
-#   block_given?
-#     https://docs.ruby-lang.org/en/4.0/Kernel.html#method-i-block_given-3F
-#
-# 教材がこの手本に加えた編集は commentary.md の「原典との差分」に書いてある。
-
 require "minitest/autorun"
 
-def gen_times(factor)
-  Proc.new { |n| n * factor } # remembers the value of factor at the moment of creation
-end
-
-def make_proc(&block)
-  block
-end
-
-def returns_from_the_enclosing_method
-  -> { return 3 }.call   # just returns from lambda into method body
-  proc { return 4 }.call # returns from method
-  return 5
-end
-
-def try
-  if block_given?
-    yield
-  else
-    "no block"
-  end
-end
-
-class BlocksAndProcsTest < Minitest::Test
+# 写しの照合テスト（教材が配る。読んでよい。写さない）。
+# 学習者の写し blocks_and_procs.rb（定義だけ）を読み込み、原典が示している呼び出しをここで行って
+# 戻り値と例外を確かめる。Proc と lambda の差は B5 の「説明できる」側なので、ここで見せる。
+class Rb109BlocksAndProcsCopyTest < Minitest::Test
   def test_a_proc_can_be_called_in_several_ways
     square = Proc.new { |x| x**2 }
     assert_equal 9, square.call(3)
@@ -104,3 +70,5 @@ class BlocksAndProcsTest < Minitest::Test
     assert_raises(ArgumentError) { [[1, 2], [3, 4]].map(&l) }
   end
 end
+
+require "blocks_and_procs"

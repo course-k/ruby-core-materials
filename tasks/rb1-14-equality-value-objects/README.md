@@ -28,7 +28,7 @@
 
 1. 手本のファイルを読む。
 2. **手で打ち込んで**成果リポに写す。
-3. 写しを走らせて通す。
+3. 写しを照合テストで確かめる。
 4. 「なぜこう書くか」を自分の言葉で書く。
 5. 模範解説を開いて突き合わせる。
 6. 確認課題を解く。
@@ -42,10 +42,12 @@
 
 ### 手順 1 — 手本を読む
 
-開くファイル: `~/lab/ruby-learning/ruby-core-materials/tasks/rb1-14-equality-value-objects/original/value_objects_test.rb`
+開くファイル: `~/lab/ruby-learning/ruby-core-materials/tasks/rb1-14-equality-value-objects/original/value_objects.rb`
 
 この手本は、公式リファレンスの Object（`==` / `equal?` / `eql?` / `hash` の各項）と、
 Struct の項・Data の項・Set の項に載っている例をつないだもの。
+手本は**定義だけ**。定義を呼び出して結果を確かめるコードは、教材が配る照合テスト
+`copy_test/value_objects_test.rb` にある。**写さない。読んでよい。**
 底本の URL はファイル冒頭のコメントにある。先にそのページを読んでおくと分かりやすい。
 
 ### 手順 2 — 成果リポへ手で打ち込む
@@ -57,18 +59,21 @@ cd ~/lab/ruby-learning/ruby-core
 mkdir -p rb1-14-equality-value-objects
 ```
 
-エディタで `rb1-14-equality-value-objects/value_objects_test.rb` を新規作成し、手本を手で打ち込む。
+エディタで `rb1-14-equality-value-objects/value_objects.rb` を新規作成し、手本を手で打ち込む。
 
 - 1 行目の `# frozen_string_literal: true` は写す（何をする行かは課題 6 で扱う）。その下の底本の URL を書いたコメント群は写さなくてよい。
 - クラス名・メソッド名・変数名・文字列は手本どおりに写す。
 
-### 手順 3 — 写しを走らせる
+### 手順 3 — 写しを照合テストで確かめる
 
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
+照合テストは教材リポにあり、写しを置いたディレクトリを `-I` で教える。
+
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby rb1-14-equality-value-objects/value_objects_test.rb
+bundle exec ruby -Irb1-14-equality-value-objects \\
+    ../ruby-core-materials/tasks/rb1-14-equality-value-objects/copy_test/value_objects_test.rb
 ```
 
 最終行に `6 runs, 24 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
@@ -81,7 +86,7 @@ bundle exec ruby rb1-14-equality-value-objects/value_objects_test.rb
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core-materials
-bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-14-equality-value-objects/value_objects_test.rb
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-14-equality-value-objects/value_objects.rb
 ```
 
 `no offenses detected` になるまで直す。
@@ -156,7 +161,7 @@ bin/check rb1-14-equality-value-objects ../ruby-core
 次がすべて満たされたときに完了とする。判定の正本はこの節である。
 
 1. `bin/check rb1-14-equality-value-objects ../ruby-core` の全項目が `[合格]`（終了コード 0）。
-   内訳は「写しの実行」「写しのアサーション数」「写しの書式」「`why.md` が雛形と差分あり」「確認課題テスト」の 5 項目。
+   内訳は「写しの照合」「写しの書式」「`why.md` が雛形と差分あり」「確認課題テスト」の 5 項目。
    終了コードは `echo $?` で見る。
 2. 機械判定に載らない工程として、次の 2 つを終えている。
    - `why.md` を、模範解説（`commentary.md`）を開く前に自分の言葉で書いた。

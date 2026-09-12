@@ -27,7 +27,7 @@
 
 1. 手本のファイルを読む。
 2. **手で打ち込んで**成果リポに写す。
-3. 写しを走らせて通す。
+3. 写しを照合テストで確かめる。
 4. 「なぜこう書くか」を自分の言葉で書く。
 5. 模範解説を開いて突き合わせる。
 6. 確認課題を解く。
@@ -42,11 +42,14 @@
 
 ### 手順 1 — 手本を読む
 
-開くファイル: `~/lab/ruby-learning/ruby-core-materials/tasks/rb1-09-blocks-procs/original/blocks_and_procs_test.rb`
+開くファイル: `~/lab/ruby-learning/ruby-core-materials/tasks/rb1-09-blocks-procs/original/blocks_and_procs.rb`
 
 この手本は、公式リファレンスの Proc（クラスの説明・Creation・Lambda and non-lambda semantics・
 Conversion of other objects to procs の各節）と、Methods の Block Argument 節、
 Kernel#block_given? の項に載っている例をつないだもの。
+手本は**定義だけ**（`gen_times` / `make_proc` / `returns_from_the_enclosing_method` / `try`）。
+定義を呼び出して結果を確かめるコードは、教材が配る照合テスト
+`copy_test/blocks_and_procs_test.rb` にある。**写さない。読んでよい。**
 底本の URL はファイル冒頭のコメントにある。先にそのページを読んでおくと分かりやすい。
 
 ### 手順 2 — 成果リポへ手で打ち込む
@@ -58,18 +61,21 @@ cd ~/lab/ruby-learning/ruby-core
 mkdir -p rb1-09-blocks-procs
 ```
 
-エディタで `rb1-09-blocks-procs/blocks_and_procs_test.rb` を新規作成し、手本を手で打ち込む。
+エディタで `rb1-09-blocks-procs/blocks_and_procs.rb` を新規作成し、手本を手で打ち込む。
 
 - 1 行目の `# frozen_string_literal: true` は写す（何をする行かは課題 6 で扱う）。その下の底本の URL を書いたコメント群は写さなくてよい。
 - クラス名・メソッド名・変数名・文字列は手本どおりに写す。
 
-### 手順 3 — 写しを走らせる
+### 手順 3 — 写しを照合テストで確かめる
 
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
+照合テストは教材リポにあり、写しを置いたディレクトリを `-I` で教える。
+
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby rb1-09-blocks-procs/blocks_and_procs_test.rb
+bundle exec ruby -Irb1-09-blocks-procs \
+    ../ruby-core-materials/tasks/rb1-09-blocks-procs/copy_test/blocks_and_procs_test.rb
 ```
 
 最終行に `9 runs, 25 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
@@ -82,7 +88,7 @@ bundle exec ruby rb1-09-blocks-procs/blocks_and_procs_test.rb
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core-materials
-bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-09-blocks-procs/blocks_and_procs_test.rb
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-09-blocks-procs/blocks_and_procs.rb
 ```
 
 `no offenses detected` になるまで直す。
@@ -185,7 +191,7 @@ bin/check rb1-09-blocks-procs ../ruby-core
 次がすべて満たされたときに完了とする。判定の正本はこの節である。
 
 1. `bin/check rb1-09-blocks-procs ../ruby-core` の全項目が `[合格]`（終了コード 0）。
-   内訳は「写しの実行」「写しのアサーション数」「写しの書式」「`why.md` が雛形と差分あり」「確認課題テスト」「出力予測 01」の 6 項目。
+   内訳は「写しの照合」「写しの書式」「`why.md` が雛形と差分あり」「確認課題テスト」「出力予測 01」の 6 項目。
 2. 機械判定に載らない工程として、次の 2 つを終えている。
    - `why.md` を、模範解説（`commentary.md`）を開く前に自分の言葉で書いた。
    - `commentary.md` を読み、自分の説明と食い違った点を `why.md` に書き足した。

@@ -5,23 +5,20 @@ format: 書き写し
 submission_dir: rb1-11-exceptions
 
 judges:
-  - id: copy-run
-    type: copy_run
-    name: 写しの実行
-    submission: exceptions_test.rb
-
-  - id: copy-assertions
-    type: assertion_count
-    name: 写しのアサーション数
-    submission: exceptions_test.rb
-    min: 19
-    runs_min: 8
+  - id: copy-check
+    type: exercise_test
+    name: 写しの照合
+    test: copy_test/exceptions_test.rb
+    load_paths:
+      - .
+    requires:
+      - exceptions.rb
 
   - id: copy-format
     type: rubocop
     name: 写しの書式（RuboCop）
     submission_paths:
-      - exceptions_test.rb
+      - exceptions.rb
 
   - id: why
     type: why_diff
