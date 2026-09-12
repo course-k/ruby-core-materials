@@ -1,0 +1,40 @@
+# 課題 4。judge は設計文書「Ruby 基礎」§5 の「書き写し」の行
+# （確認課題はデバッグ型なので、確認課題テストの judge は exercise_test を使う）。
+task: rb1-04-values-truth
+title: 値と真偽
+format: 書き写し（確認課題はデバッグ型）
+submission_dir: rb1-04-values-truth
+
+judges:
+  - id: copy-run
+    type: copy_run
+    name: 写しの実行
+    submission: values_and_truth_test.rb
+
+  - id: copy-assertions
+    type: assertion_count
+    name: 写しのアサーション数
+    submission: values_and_truth_test.rb
+    min: 15
+    runs_min: 8
+
+  - id: copy-format
+    type: rubocop
+    name: 写しの書式（RuboCop）
+    submission_paths:
+      - values_and_truth_test.rb
+
+  - id: why
+    type: why_diff
+    name: why.md が雛形と差分あり
+    template: why.md
+    submission: why.md
+
+  - id: exercise
+    type: exercise_test
+    name: 確認課題テスト
+    test: exercise/test/settings_test.rb
+    load_paths:
+      - exercise/lib
+    requires:
+      - exercise/lib/settings.rb

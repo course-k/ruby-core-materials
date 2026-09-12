@@ -1,0 +1,22 @@
+# ミニ統合①。要件は着手後開封、判定テストは判定時のみ実行（設計文書「Ruby 基礎」§5）。
+# RuboCop は judge に並べない（表示のみ。課題文書が学習者に自分で掛ける手順を書く）。
+task: rb1-12-mini-integration-1
+title: ミニ統合① 得点の集計スクリプト
+format: ミニ統合
+submission_dir: rb1-12-mini-integration-1
+
+judges:
+  - id: contract
+    type: sealed_test
+    name: 入出力契約の判定テスト
+    sealed: tally_contract_test.rb
+    load_paths:
+      - "."
+    requires:
+      - tally.rb
+
+sealed:
+  - file: requirements.md
+    open: on_start
+  - file: tally_contract_test.rb
+    open: judge_only

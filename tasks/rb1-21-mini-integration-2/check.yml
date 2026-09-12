@@ -1,0 +1,24 @@
+# ミニ統合②。要件は着手後開封、判定テストは判定時のみ実行（設計文書「Ruby 基礎」§5）。
+# RuboCop は judge に並べない（表示のみ）。学習者が自分で書くテストは判定に含めない。
+task: rb1-21-mini-integration-2
+title: ミニ統合② 重複を除く小さな CLI
+format: ミニ統合
+submission_dir: rb1-21-mini-integration-2
+
+judges:
+  - id: contract
+    type: sealed_test
+    name: 入出力契約の判定テスト
+    sealed: dedup_contract_test.rb
+    load_paths:
+      - lib
+      - exe
+    requires:
+      - lib/records.rb
+      - exe/dedup
+
+sealed:
+  - file: requirements.md
+    open: on_start
+  - file: dedup_contract_test.rb
+    open: judge_only

@@ -1,0 +1,46 @@
+# 課題 9。judge は設計文書「Ruby 基礎」§5 の「書き写し」の行に、
+# 確認課題が 2 つ（実装型と出力予測型）あるので predict を 1 本足したもの。
+task: rb1-09-blocks-procs
+title: ブロックと Proc と lambda
+format: 書き写し（確認課題は実装型と出力予測型の 2 つ）
+submission_dir: rb1-09-blocks-procs
+
+judges:
+  - id: copy-run
+    type: copy_run
+    name: 写しの実行
+    submission: blocks_and_procs_test.rb
+
+  - id: copy-assertions
+    type: assertion_count
+    name: 写しのアサーション数
+    submission: blocks_and_procs_test.rb
+    min: 25
+    runs_min: 9
+
+  - id: copy-format
+    type: rubocop
+    name: 写しの書式（RuboCop）
+    submission_paths:
+      - blocks_and_procs_test.rb
+
+  - id: why
+    type: why_diff
+    name: why.md が雛形と差分あり
+    template: why.md
+    submission: why.md
+
+  - id: exercise
+    type: exercise_test
+    name: 確認課題テスト
+    test: exercise/test/pipeline_test.rb
+    load_paths:
+      - exercise/lib
+    requires:
+      - exercise/lib/pipeline.rb
+
+  - id: predict-01
+    type: predict
+    name: 出力予測 01
+    source: predict/01.rb
+    expected: predict/01.txt

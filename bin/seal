@@ -1,0 +1,66 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# bin/seal — 平文の封緘物を暗号化して tasks/<課題番号>/sealed/ へ置く（根幹 §7）。
+#
+#   bin/seal <平文ディレクトリ> <課題番号>
+#
+# 平文は教材リポの外の作業場で作る。このコマンドは平文を教材リポへコピーしない。
+# 方式は openssl の対称鍵（AES-256-CBC・pbkdf2）。鍵は両リポの外:
+#   ~/.config/ruby-learning/seal.key（環境変数 RUBY_LEARNING_SEAL_KEY_FILE で上書き可）
+#
+# 終了コード: 0 成功 / 2 使い方エラー（ディレクトリ不在・鍵不在・道具不在）
+
+require "fileutils"
+require "open3"
+
+MATERIALS_ROOT = File.expand_path("..", __dir__)
+
+KEY_FILE = ENV["RUBY_LEARNING_SEAL_KEY_FILE"] || File.join(Dir.home, ".config", "ruby-learning", "seal.key")
+CIPHER_ARGS = %w[enc -aes-256-cbc -pbkdf2 -salt].freeze
+
+def die(message)
+  warn message
+  exit 2
+end
+
+plain_dir, task_id = ARGV
+if plain_dir.nil? || task_id.nil?
+  die("使い方: bin/seal <平文ディレクトリ> <課題番号>")
+end
+
+plain_dir = File.expand_path(plain_dir)
+die("平文ディレクトリが見つかりません: #{plain_dir}") unless Dir.exist?(plain_dir)
+
+task_dir = File.join(MATERIALS_ROOT, "tasks", task_id)
+die("課題ディレクトリが見つかりません: #{task_dir}") unless Dir.exist?(task_dir)
+
+if plain_dir.start_with?("#{MATERIALS_ROOT}/") && !plain_dir.start_with?(File.join(MATERIALS_ROOT, "unsealed"))
+  die("平文は教材リポの外の作業場に置いてください（根幹 §7）: #{plain_dir}")
+end
+
+die("封緘の鍵が見つかりません: #{KEY_FILE}") unless File.file?(KEY_FILE)
+
+begin
+  _out, status = Open3.capture2e("openssl", "version")
+  die("openssl コマンドが見つかりません") unless status.success?
+rescue Errno::ENOENT
+  die("openssl コマンドが見つかりません")
+end
+
+sealed_dir = File.join(task_dir, "sealed")
+FileUtils.mkdir_p(sealed_dir)
+
+files = Dir.children(plain_dir).sort.select { |f| File.file?(File.join(plain_dir, f)) }
+die("平文ディレクトリにファイルがありません: #{plain_dir}") if files.empty?
+
+files.each do |name|
+  src = File.join(plain_dir, name)
+  dest = File.join(sealed_dir, "#{name}.enc")
+  out, status = Open3.capture2e("openssl", *CIPHER_ARGS, "-in", src, "-out", dest, "-pass", "file:#{KEY_FILE}")
+  die("封緘に失敗しました: #{src}\n#{out}") unless status.success?
+  puts "封緘しました: #{dest}"
+end
+
+puts
+puts "check.yml の sealed: に開封タイミングを書いてください（on_start / judge_only / on_complete）。"

@@ -1,0 +1,71 @@
+# 検体課題。bin/check の judge 8 種すべてを 1 課題で動かす。
+# スキーマは docs/check-yml.md。
+task: rb1-00-selfcheck
+title: 基盤の検体（学習者向け課題ではない）
+format: selfcheck
+submission_dir: rb1-00-selfcheck
+
+judges:
+  - id: copy-run
+    type: copy_run
+    name: 写しの実行
+    submission: greeting_test.rb
+
+  - id: copy-assertions
+    type: assertion_count
+    name: 写しのアサーション数
+    submission: greeting_test.rb
+    min: 7
+    runs_min: 4
+
+  - id: copy-format
+    type: rubocop
+    name: 写しの書式（RuboCop）
+    submission_paths:
+      - greeting_test.rb
+
+  - id: why
+    type: why_diff
+    name: why.md が雛形と差分あり
+    template: why.md
+    submission: why.md
+
+  - id: exercise
+    type: exercise_test
+    name: 確認課題テスト
+    test: exercise/test/shout_test.rb
+    load_paths:
+      - exercise/lib
+    requires:
+      - exercise/lib/shout.rb
+
+  - id: predict-01
+    type: predict
+    name: 出力予測 01
+    source: predict/01.rb
+    expected: predict/01.txt
+
+  - id: template
+    type: template_test
+    name: 雛形テストの実行
+    test: template/test/fizzbuzz_test.rb
+    load_paths:
+      - template/lib
+      - template/test
+
+  - id: sealed
+    type: sealed_test
+    name: 封緘テスト
+    sealed: normalizer_contract_test.rb
+    load_paths:
+      - lib
+    requires:
+      - lib/normalizer.rb
+
+sealed:
+  - file: requirements.md
+    open: on_start
+  - file: normalizer_contract_test.rb
+    open: judge_only
+  - file: reference.rb
+    open: on_complete

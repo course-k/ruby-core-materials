@@ -1,0 +1,39 @@
+# 書き写し用の RuboCop 設定（根幹 §3.1 が正）。
+#
+# 有効にするのはここに書いた cop だけ。DisabledByDefault で全 cop を切り、
+# Layout 部門全体と、根幹 §3.1 が名指しする 5 つの cop だけを戻す。
+# Style/MethodCallWithArgsParentheses は根幹 §3.1 の規定により無効のまま
+# （DisabledByDefault: true なので明示的に有効化しなければ動かない）。
+
+AllCops:
+  DisabledByDefault: true
+  NewCops: disable
+  TargetRubyVersion: 4.0
+  SuggestExtensions: false
+  Exclude:
+    - "vendor/**/*"
+    - "unsealed/**/*"
+    - ".worktmp/**/*"
+
+# インデント幅・空行・演算子まわりの空白（根幹 §3.1）
+Layout:
+  Enabled: true
+
+# セミコロン
+Style/Semicolon:
+  Enabled: true
+
+# 引用符
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: double_quotes
+
+# camelCase の検出
+Naming/MethodName:
+  Enabled: true
+Naming/VariableName:
+  Enabled: true
+
+# frozen string literal の宣言
+Style/FrozenStringLiteralComment:
+  Enabled: true

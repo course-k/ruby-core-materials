@@ -1,0 +1,12 @@
+# frozen_string_literal: true
+
+# 確認課題の雛形（実行ファイル側）。成果リポの
+# rb1-19-optparse-executable/exercise/exe/count へ置いて実装し、実行権限を付ける。
+#
+# 足りないものが 3 つある。README の手順どおりに自分で足す。
+#   1. 1 行目の shebang
+#   2. lib/counter.rb の読み込み
+#   3. OptionParser による -w / --words の受け取り
+#
+# 仕様: 標準入力を丸ごと読み、既定では行数を、-w か --words が付いていれば単語数を、
+#       数字だけの 1 行として標準出力へ出す。終了コードは 0。

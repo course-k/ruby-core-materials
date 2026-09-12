@@ -1,0 +1,39 @@
+# 書き写し課題。judge の構成は docs/check-yml.md の「形式別のひな型」を参照。
+task: rb1-13-modules-mixins
+title: module と mixin
+format: 書き写し
+submission_dir: rb1-13-modules-mixins
+
+judges:
+  - id: copy-run
+    type: copy_run
+    name: 写しの実行
+    submission: modules_test.rb
+
+  - id: copy-assertions
+    type: assertion_count
+    name: 写しのアサーション数
+    submission: modules_test.rb
+    min: 16
+    runs_min: 5
+
+  - id: copy-format
+    type: rubocop
+    name: 写しの書式（RuboCop）
+    submission_paths:
+      - modules_test.rb
+
+  - id: why
+    type: why_diff
+    name: why.md が雛形と差分あり
+    template: why.md
+    submission: why.md
+
+  - id: exercise
+    type: exercise_test
+    name: 確認課題テスト
+    test: exercise/test/version_tag_test.rb
+    load_paths:
+      - exercise/lib
+    requires:
+      - exercise/lib/version_tag.rb

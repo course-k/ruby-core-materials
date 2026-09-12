@@ -1,0 +1,39 @@
+# 書き写し課題。judge の構成は docs/check-yml.md の「形式別のひな型」を参照。
+task: rb1-14-equality-value-objects
+title: 等価性と値オブジェクト
+format: 書き写し
+submission_dir: rb1-14-equality-value-objects
+
+judges:
+  - id: copy-run
+    type: copy_run
+    name: 写しの実行
+    submission: value_objects_test.rb
+
+  - id: copy-assertions
+    type: assertion_count
+    name: 写しのアサーション数
+    submission: value_objects_test.rb
+    min: 24
+    runs_min: 6
+
+  - id: copy-format
+    type: rubocop
+    name: 写しの書式（RuboCop）
+    submission_paths:
+      - value_objects_test.rb
+
+  - id: why
+    type: why_diff
+    name: why.md が雛形と差分あり
+    template: why.md
+    submission: why.md
+
+  - id: exercise
+    type: exercise_test
+    name: 確認課題テスト
+    test: exercise/test/log_lines_test.rb
+    load_paths:
+      - exercise/lib
+    requires:
+      - exercise/lib/log_lines.rb

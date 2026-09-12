@@ -1,0 +1,54 @@
+# ゼロ実装 3 題。仕様は着手後開封、判定テストは判定時のみ実行、参照実装は完了後開封
+# （設計文書「Ruby 基礎」§5）。RuboCop は judge に並べない（表示のみ）。
+task: rb1-20-zero-impl
+title: ゼロ実装 3 題
+format: ゼロ実装
+submission_dir: rb1-20-zero-impl
+
+judges:
+  - id: zero-01
+    type: sealed_test
+    name: ゼロ実装 01
+    sealed: normalizer_test.rb
+    load_paths:
+      - lib
+    requires:
+      - lib/normalizer.rb
+
+  - id: zero-02
+    type: sealed_test
+    name: ゼロ実装 02
+    sealed: ledger_test.rb
+    load_paths:
+      - lib
+    requires:
+      - lib/ledger.rb
+
+  - id: zero-03
+    type: sealed_test
+    name: ゼロ実装 03
+    sealed: log_reader_test.rb
+    load_paths:
+      - lib
+    requires:
+      - lib/log_reader.rb
+
+sealed:
+  - file: spec_01_normalizer.md
+    open: on_start
+  - file: spec_02_ledger.md
+    open: on_start
+  - file: spec_03_log_reader.md
+    open: on_start
+  - file: normalizer_test.rb
+    open: judge_only
+  - file: ledger_test.rb
+    open: judge_only
+  - file: log_reader_test.rb
+    open: judge_only
+  - file: reference_01_normalizer.rb
+    open: on_complete
+  - file: reference_02_ledger.rb
+    open: on_complete
+  - file: reference_03_log_reader.rb
+    open: on_complete

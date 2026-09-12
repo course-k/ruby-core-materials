@@ -1,0 +1,39 @@
+# 課題 8。judge は設計文書「Ruby 基礎」§5 の「書き写し」の行。
+task: rb1-08-methods-arguments
+title: メソッドと引数
+format: 書き写し
+submission_dir: rb1-08-methods-arguments
+
+judges:
+  - id: copy-run
+    type: copy_run
+    name: 写しの実行
+    submission: methods_and_arguments_test.rb
+
+  - id: copy-assertions
+    type: assertion_count
+    name: 写しのアサーション数
+    submission: methods_and_arguments_test.rb
+    min: 22
+    runs_min: 7
+
+  - id: copy-format
+    type: rubocop
+    name: 写しの書式（RuboCop）
+    submission_paths:
+      - methods_and_arguments_test.rb
+
+  - id: why
+    type: why_diff
+    name: why.md が雛形と差分あり
+    template: why.md
+    submission: why.md
+
+  - id: exercise
+    type: exercise_test
+    name: 確認課題テスト
+    test: exercise/test/formatter_test.rb
+    load_paths:
+      - exercise/lib
+    requires:
+      - exercise/lib/formatter.rb

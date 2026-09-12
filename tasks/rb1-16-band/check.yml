@@ -1,0 +1,35 @@
+# 中間帯（完成問題・デバッグ課題・出力予測）。judge の構成は docs/check-yml.md を参照。
+# 完成問題の判定テストは封緘（判定時のみ実行）。デバッグ課題のテストは封緘しない。
+task: rb1-16-band
+title: 完成問題・デバッグ課題・出力予測
+format: 中間帯
+submission_dir: rb1-16-band
+
+judges:
+  - id: complete
+    type: sealed_test
+    name: 完成問題の判定テスト
+    sealed: tally_report_test.rb
+    load_paths:
+      - complete/lib
+    requires:
+      - complete/lib/tally_report.rb
+
+  - id: debug
+    type: exercise_test
+    name: デバッグ課題のテスト
+    test: debug/test/word_stats_test.rb
+    load_paths:
+      - debug/lib
+    requires:
+      - debug/lib/word_stats.rb
+
+  - id: predict-01
+    type: predict
+    name: 出力予測 01
+    source: predict/01.rb
+    expected: predict/01.txt
+
+sealed:
+  - file: tally_report_test.rb
+    open: judge_only

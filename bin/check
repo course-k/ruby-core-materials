@@ -1,0 +1,694 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# bin/check — Ruby 学習教材の共通判定ツール（根幹文書 §6「bin/check の共通契約」の実装）
+#
+#   bin/check <課題番号> <成果リポのパス>            判定する
+#   bin/check --start <課題番号> <成果リポのパス>    着手する（封緘物を開封し、判定しない）
+#   bin/check --report <課題番号> <成果リポのパス>   判定ログだけを書き出す
+#
+# 終了コード: 0 合格（または未着手のみ） / 1 判定失敗 / 2 使い方エラー
+
+require "fileutils"
+require "open3"
+require "tmpdir"
+require "yaml"
+
+MATERIALS_ROOT = File.expand_path("..", __dir__)
+
+# 使い方エラー（課題番号の誤り・成果リポ不在・鍵不在・道具不在）は終了コード 2。
+class UsageError < StandardError; end
+
+# 環境変数を落として、bin/check 自身の bundler 環境を子プロセスへ漏らさない。
+CLEAN_ENV = {
+  "RUBYOPT" => nil,
+  "RUBYLIB" => nil,
+  "BUNDLE_GEMFILE" => nil,
+  "BUNDLE_PATH" => nil,
+  "BUNDLE_BIN_PATH" => nil,
+  "BUNDLE_APP_CONFIG" => nil
+}.freeze
+
+OPEN_TIMINGS = %w[on_start judge_only on_complete].freeze
+
+# 判定 1 件の結果。status は :pass / :fail / :not_started。
+Outcome = Struct.new(:id, :name, :status, :lines, keyword_init: true) do
+  def label
+    case status
+    when :pass then "合格"
+    when :fail then "失敗"
+    else "未着手"
+    end
+  end
+end
+
+# ---------------------------------------------------------------- 小道具
+
+module Shell
+  module_function
+
+  def capture(env, *cmd, chdir: nil)
+    opts = {}
+    opts[:chdir] = chdir if chdir
+    out, status = Open3.capture2e(CLEAN_ENV.merge(env), *cmd, **opts)
+    [out, status]
+  rescue Errno::ENOENT => e
+    raise UsageError, "道具が見つかりません: #{e.message}"
+  end
+
+  def tool_available?(*cmd)
+    _out, status = Open3.capture2e(CLEAN_ENV, *cmd)
+    status.success?
+  rescue Errno::ENOENT
+    false
+  end
+end
+
+# minitest の実行結果。実行サマリ「N runs, M assertions, ...」から数を読む。
+class MinitestRun
+  SUMMARY = /^(\d+) runs?, (\d+) assertions?, (\d+) failures?, (\d+) errors?, (\d+) skips?/
+
+  # 失敗メッセージ 1 行の上限（根幹 §6: 失敗表示から封緘テストの中身が漏れないための歯止め）。
+  MAX_MESSAGE = 200
+
+  attr_reader :output, :runs, :assertions, :failures, :errors, :skips
+
+  def initialize(output)
+    @output = output
+    m = output.match(SUMMARY)
+    if m
+      @runs, @assertions, @failures, @errors, @skips = m.captures.map(&:to_i)
+      @parsed = true
+    else
+      @runs = @assertions = @failures = @errors = @skips = 0
+      @parsed = false
+    end
+  end
+
+  def parsed? = @parsed
+  def green? = parsed? && failures.zero? && errors.zero?
+
+  # 1 行が長すぎるときは MAX_MESSAGE 文字で切り詰めて「…」を付ける。
+  def truncate(message)
+    return message if message.length <= MAX_MESSAGE
+
+    "#{message[0, MAX_MESSAGE]}…"
+  end
+
+  # 失敗時の表示は「テスト名＋失敗メッセージ 1 行目」に限る（根幹 §6）。
+  def failure_lines
+    lines = output.lines.map(&:chomp)
+    out = []
+    lines.each_with_index do |line, i|
+      next unless line.match?(/^\s*\d+\) (Failure|Error):\s*$/)
+
+      kind = line[/(Failure|Error)/, 1]
+      header = lines[i + 1].to_s.strip
+      name = header.sub(/\s*\[.*\]:?\z/, "").sub(/:\z/, "")
+      message = lines[(i + 2)..].to_a.find { |l| !l.strip.empty? }.to_s.strip
+      out << "#{name}: #{kind}: #{truncate(message)}"
+    end
+    return out unless out.empty?
+
+    # サマリが出ないほど早く落ちた場合（構文エラー等）は先頭の非空行を 1 本だけ返す。
+    first = lines.find { |l| !l.strip.empty? }
+    first ? ["(テストが起動しませんでした) #{first.strip}"] : ["(出力なし)"]
+  end
+end
+
+# 封緘: openssl の対称鍵（AES-256-CBC・pbkdf2）。鍵は両リポの外に置く。
+module Seal
+  DEFAULT_KEY_FILE = File.join(Dir.home, ".config", "ruby-learning", "seal.key")
+  CIPHER_ARGS = %w[enc -aes-256-cbc -pbkdf2 -salt].freeze
+
+  module_function
+
+  def key_file
+    ENV["RUBY_LEARNING_SEAL_KEY_FILE"] || DEFAULT_KEY_FILE
+  end
+
+  def require_key!
+    path = key_file
+    unless File.file?(path)
+      raise UsageError, <<~MSG.chomp
+        封緘の鍵が見つかりません: #{path}
+        鍵は両リポの外に置きます。環境変数 RUBY_LEARNING_SEAL_KEY_FILE で場所を変えられます。
+      MSG
+    end
+
+    path
+  end
+
+  def encrypt(plain_path, enc_path)
+    key = require_key!
+    FileUtils.mkdir_p(File.dirname(enc_path))
+    out, status = Shell.capture({}, "openssl", *CIPHER_ARGS,
+                                "-in", plain_path, "-out", enc_path, "-pass", "file:#{key}")
+    raise UsageError, "封緘に失敗しました: #{plain_path}\n#{out}" unless status.success?
+
+    enc_path
+  end
+
+  def decrypt(enc_path, plain_path)
+    key = require_key!
+    raise UsageError, "封緘物が見つかりません: #{enc_path}" unless File.file?(enc_path)
+
+    FileUtils.mkdir_p(File.dirname(plain_path))
+    out, status = Shell.capture({}, "openssl", *CIPHER_ARGS, "-d",
+                                "-in", enc_path, "-out", plain_path, "-pass", "file:#{key}")
+    raise UsageError, "復号に失敗しました: #{enc_path}\n#{out}" unless status.success?
+
+    plain_path
+  end
+end
+
+# ---------------------------------------------------------------- 課題の定義
+
+class TaskConfig
+  attr_reader :id, :dir, :data
+
+  def initialize(materials_root, task_id)
+    @id = task_id
+    @dir = File.join(materials_root, "tasks", task_id)
+    path = File.join(@dir, "check.yml")
+    unless File.file?(path)
+      raise UsageError, "課題番号が違います（#{path} がありません）: #{task_id}"
+    end
+
+    @data = YAML.safe_load_file(path) || {}
+    validate!
+  end
+
+  def title = data["title"].to_s
+  def submission_dir = data["submission_dir"] || id
+  def judges = data["judges"] || []
+  def sealed_entries = data["sealed"] || []
+
+  def sealed_by_timing(timing)
+    sealed_entries.select { |e| e["open"] == timing }
+  end
+
+  def sealed_entry(name)
+    sealed_entries.find { |e| e["file"] == name }
+  end
+
+  def sealed_enc_path(name) = File.join(dir, "sealed", "#{name}.enc")
+
+  private
+
+  def validate!
+    raise UsageError, "check.yml の task が課題番号と一致しません: #{data['task']}" if data["task"] && data["task"] != id
+
+    sealed_entries.each do |e|
+      unless OPEN_TIMINGS.include?(e["open"])
+        raise UsageError, "check.yml: sealed の open は #{OPEN_TIMINGS.join(' / ')} のいずれか（#{e['open'].inspect}）"
+      end
+    end
+  end
+end
+
+# 機械の記録 <成果リポ>/.check/<課題番号>.yml（学習者が書く progress.md とは役割を分ける）
+class StateFile
+  def initialize(repo, task_id)
+    @path = File.join(repo, ".check", "#{task_id}.yml")
+    @task_id = task_id
+    @data = File.file?(@path) ? (YAML.safe_load_file(@path) || {}) : {}
+  end
+
+  attr_reader :path, :data
+
+  def started? = !@data["started_at"].nil?
+
+  def mark_started!
+    @data["task"] = @task_id
+    @data["started_at"] ||= now
+    save!
+  end
+
+  def record_unsealed!(name, timing)
+    @data["unsealed"] ||= []
+    return if @data["unsealed"].any? { |u| u["file"] == name && u["open"] == timing }
+
+    @data["unsealed"] << { "file" => name, "open" => timing, "at" => now }
+    save!
+  end
+
+  def record_check!(status)
+    @data["task"] = @task_id
+    @data["last_checked_at"] = now
+    @data["status"] = status
+    @data["passed_at"] ||= now if status == "passed"
+    save!
+  end
+
+  private
+
+  def now = Time.now.strftime("%Y-%m-%dT%H:%M:%S%:z")
+
+  def save!
+    FileUtils.mkdir_p(File.dirname(@path))
+    File.write(@path, @data.to_yaml)
+  end
+end
+
+# ---------------------------------------------------------------- 判定
+
+class Judge
+  def initialize(ctx, spec)
+    @ctx = ctx
+    @spec = spec
+  end
+
+  attr_reader :ctx, :spec
+
+  def id = spec["id"] || spec["type"]
+  def name = spec["name"] || spec["type"]
+
+  def pass(*lines) = Outcome.new(id: id, name: name, status: :pass, lines: lines)
+  def fail_with(*lines) = Outcome.new(id: id, name: name, status: :fail, lines: lines)
+  def not_started(*lines) = Outcome.new(id: id, name: name, status: :not_started, lines: lines)
+
+  def sub(rel) = File.join(ctx.submission_task_dir, rel)
+  def mat(rel) = File.join(ctx.task.dir, rel)
+end
+
+# 写しの実行（失敗ゼロ）
+class CopyRunJudge < Judge
+  def run
+    path = sub(spec["submission"])
+    return not_started("写しがまだありません: #{ctx.rel(path)}") unless File.file?(path)
+
+    run = ctx.minitest(path)
+    return pass("#{run.runs} runs, #{run.assertions} assertions") if run.green?
+
+    fail_with(*run.failure_lines)
+  end
+end
+
+# アサーション数 ≧ 原本、かつテストメソッド数 ≧ 原本（minitest の実行サマリから読む）
+class AssertionCountJudge < Judge
+  def run
+    path = sub(spec["submission"])
+    return not_started("写しがまだありません: #{ctx.rel(path)}") unless File.file?(path)
+
+    min = spec["min"].to_i
+    runs_min = spec["runs_min"].to_i
+    run = ctx.minitest(path)
+    return fail_with("テストが起動しないためアサーション数を読めません") unless run.parsed?
+
+    problems = []
+    problems << "アサーション数が原本に足りません: #{run.assertions} < #{min}" if run.assertions < min
+    if runs_min.positive? && run.runs < runs_min
+      problems << "テストメソッド数が原本に足りません: #{run.runs} < #{runs_min}"
+    end
+    return fail_with(*problems) unless problems.empty?
+
+    pass(summary(run, min, runs_min))
+  end
+
+  private
+
+  def summary(run, min, runs_min)
+    text = "#{run.assertions} assertions（原本 #{min} 以上）"
+    text += "・#{run.runs} runs（原本 #{runs_min} 以上）" if runs_min.positive?
+    text
+  end
+end
+
+# 書式（教材リポの .rubocop.yml。教材リポの Gemfile で実行する）
+class RubocopJudge < Judge
+  def run
+    paths = Array(spec["submission_paths"]).map { |r| sub(r) }
+    missing = paths.reject { |p| File.exist?(p) }
+    return not_started("検査対象がまだありません: #{missing.map { ctx.rel(_1) }.join(', ')}") unless missing.empty?
+
+    out, status = ctx.rubocop(paths)
+    return pass("指摘ゼロ") if status.success?
+
+    offenses = out.lines.map(&:chomp).select { |l| l.match?(/^\S+:\d+:\d+: [A-Z]:/) }
+    lines = offenses.map { |l| l.sub(/\A#{Regexp.escape(ctx.submission_repo)}\//, "") }
+    fail_with(*(lines.empty? ? out.lines.map(&:chomp).last(5) : lines))
+  end
+end
+
+# why.md が雛形と差分あり（中身の合否は判定しない）
+class WhyDiffJudge < Judge
+  def run
+    template = mat(spec["template"] || "why.md")
+    answer = sub(spec["submission"] || "why.md")
+    return not_started("why.md がまだありません: #{ctx.rel(answer)}") unless File.file?(answer)
+    return fail_with("教材リポに雛形がありません: #{template}") unless File.file?(template)
+
+    if normalize(File.read(answer)) == normalize(File.read(template))
+      fail_with("why.md が雛形のままです（自分の言葉で書き足してください）")
+    else
+      pass("雛形との差分あり")
+    end
+  end
+
+  private
+
+  def normalize(text) = text.gsub(/\r\n?/, "\n").strip
+end
+
+# 確認課題テスト（正本は教材リポ側。一時ディレクトリで実行して残さない）
+class ExerciseTestJudge < Judge
+  def run
+    test_src = mat(spec["test"])
+    return fail_with("教材リポに確認課題テストがありません: #{test_src}") unless File.file?(test_src)
+
+    load_paths = Array(spec["load_paths"]).map { |r| sub(r) }
+    missing = load_paths.reject { |p| Dir.exist?(p) }
+    return not_started("確認課題がまだありません: #{missing.map { ctx.rel(_1) }.join(', ')}") unless missing.empty?
+
+    if Array(spec["requires"]).any? { |r| !File.exist?(sub(r)) }
+      return not_started("確認課題がまだありません: #{Array(spec['requires']).map { ctx.rel(sub(_1)) }.join(', ')}")
+    end
+
+    run = ctx.run_test_in_tmp(test_src, load_paths)
+    run.green? ? pass("#{run.runs} runs, #{run.assertions} assertions") : fail_with(*run.failure_lines)
+  end
+end
+
+# 封緘テスト（判定時のみ実行。復号は一時ディレクトリ、実行後に残さない）
+class SealedTestJudge < Judge
+  def run
+    name = spec["sealed"]
+    entry = ctx.task.sealed_entry(name)
+    return fail_with("check.yml の sealed に #{name} がありません") unless entry
+    unless entry["open"] == "judge_only"
+      return fail_with("封緘テストの open は judge_only である必要があります: #{name}")
+    end
+
+    load_paths = Array(spec["load_paths"]).map { |r| sub(r) }
+    required = Array(spec["requires"]).map { |r| sub(r) }
+    missing = required.reject { |p| File.exist?(p) }
+    return not_started("実装がまだありません: #{missing.map { ctx.rel(_1) }.join(', ')}") unless missing.empty?
+    if required.empty? && load_paths.none? { |p| Dir.exist?(p) }
+      return not_started("実装がまだありません: #{load_paths.map { ctx.rel(_1) }.join(', ')}")
+    end
+
+    run = nil
+    Dir.mktmpdir("ruby-learning-sealed-") do |tmp|
+      plain = File.join(tmp, name)
+      Seal.decrypt(ctx.task.sealed_enc_path(name), plain)
+      run = ctx.run_test(plain, load_paths)
+    end
+    run.green? ? pass("#{run.runs} runs, #{run.assertions} assertions") : fail_with(*run.failure_lines)
+  end
+end
+
+# 出力予測: predict/NN.txt と対象コードの実行時標準出力の完全一致
+class PredictJudge < Judge
+  def run
+    source = mat(spec["source"])
+    return fail_with("教材リポに対象コードがありません: #{source}") unless File.file?(source)
+
+    answer = sub(spec["expected"])
+    return not_started("予測がまだありません: #{ctx.rel(answer)}") unless File.file?(answer)
+
+    actual, status = ctx.run_ruby(source)
+    return fail_with("対象コードの実行に失敗しました") unless status.success?
+
+    if normalize(File.read(answer)) == normalize(actual)
+      pass("実行出力と一致")
+    else
+      fail_with("予測と実行出力が一致しません（#{diff_hint(File.read(answer), actual)}）")
+    end
+  end
+
+  private
+
+  def normalize(text) = text.gsub(/\r\n?/, "\n").sub(/\n+\z/, "")
+
+  def diff_hint(expected, actual)
+    e = normalize(expected).lines
+    a = normalize(actual).lines
+    idx = e.zip(a).index { |x, y| x != y }
+    return "行数が違う: 予測 #{e.size} 行 / 実行 #{a.size} 行" if idx.nil?
+
+    "最初に食い違う行: #{idx + 1} 行目"
+  end
+end
+
+# 雛形テストの実行（成果リポに置かれた雛形を成果リポの Gemfile で走らせる）
+class TemplateTestJudge < Judge
+  def run
+    test = sub(spec["test"])
+    return not_started("雛形テストがまだありません: #{ctx.rel(test)}") unless File.file?(test)
+
+    load_paths = Array(spec["load_paths"]).map { |r| sub(r) }
+    run = ctx.run_test(test, load_paths)
+    run.green? ? pass("#{run.runs} runs, #{run.assertions} assertions") : fail_with(*run.failure_lines)
+  end
+end
+
+JUDGE_TYPES = {
+  "copy_run" => CopyRunJudge,
+  "assertion_count" => AssertionCountJudge,
+  "rubocop" => RubocopJudge,
+  "why_diff" => WhyDiffJudge,
+  "exercise_test" => ExerciseTestJudge,
+  "sealed_test" => SealedTestJudge,
+  "predict" => PredictJudge,
+  "template_test" => TemplateTestJudge
+}.freeze
+
+# ---------------------------------------------------------------- 実行文脈
+
+class Context
+  attr_reader :task, :submission_repo
+
+  def initialize(task, submission_repo)
+    @task = task
+    @submission_repo = submission_repo
+    @minitest_cache = {}
+  end
+
+  def submission_task_dir = File.join(submission_repo, task.submission_dir)
+
+  def rel(path)
+    path.sub(/\A#{Regexp.escape(submission_repo)}\//, "").sub(/\A#{Regexp.escape(MATERIALS_ROOT)}\//, "")
+  end
+
+  def submission_env = { "BUNDLE_GEMFILE" => File.join(submission_repo, "Gemfile") }
+  def materials_env = { "BUNDLE_GEMFILE" => File.join(MATERIALS_ROOT, "Gemfile") }
+
+  # 学習者コードのテストは成果リポの Gemfile で実行する（根幹 §6）。
+  def minitest(path)
+    @minitest_cache[path] ||= run_test(path, [File.join(submission_task_dir, "lib"),
+                                              File.join(submission_task_dir, "test")].select { Dir.exist?(_1) })
+  end
+
+  def run_test(test_path, load_paths)
+    args = load_paths.flat_map { |p| ["-I", p] }
+    out, = Shell.capture(submission_env, "bundle", "exec", "ruby", *args, test_path, chdir: submission_repo)
+    MinitestRun.new(out)
+  end
+
+  # 判定用テストは一時ディレクトリで実行し残さない（根幹 §6）。
+  def run_test_in_tmp(test_src, load_paths)
+    run = nil
+    Dir.mktmpdir("ruby-learning-judge-") do |tmp|
+      copy = File.join(tmp, File.basename(test_src))
+      FileUtils.cp(test_src, copy)
+      run = run_test(copy, load_paths)
+    end
+    run
+  end
+
+  def run_ruby(path)
+    Shell.capture(materials_env, "bundle", "exec", "ruby", path, chdir: MATERIALS_ROOT)
+  end
+
+  # RuboCop は教材リポの Gemfile で実行する（根幹 §6）。
+  def rubocop(paths)
+    Shell.capture(materials_env, "bundle", "exec", "rubocop",
+                  "--config", File.join(MATERIALS_ROOT, ".rubocop.yml"),
+                  "--force-exclusion", "--no-color", "--format", "emacs",
+                  *paths, chdir: MATERIALS_ROOT)
+  end
+end
+
+# ---------------------------------------------------------------- 本体
+
+class Runner
+  def initialize(argv)
+    @mode = :check
+    args = argv.dup
+    case args.first
+    when "--start"
+      @mode = :start
+      args.shift
+    when "--report"
+      @mode = :report
+      args.shift
+    when "-h", "--help"
+      usage_and_exit(0)
+    end
+    raise UsageError, usage_text if args.size != 2
+
+    @task_id = args[0]
+    @submission_repo = File.expand_path(args[1])
+  end
+
+  attr_reader :mode, :task_id, :submission_repo
+
+  def call
+    check_tools!
+    check_repo!
+    @task = TaskConfig.new(MATERIALS_ROOT, task_id)
+    @ctx = Context.new(@task, submission_repo)
+    @state = StateFile.new(submission_repo, task_id)
+
+    case mode
+    when :start then do_start
+    when :report then do_report
+    else do_check
+    end
+  end
+
+  private
+
+  attr_reader :task, :ctx, :state
+
+  def usage_text
+    <<~TXT.chomp
+      使い方:
+        bin/check <課題番号> <成果リポのパス>
+        bin/check --start <課題番号> <成果リポのパス>
+        bin/check --report <課題番号> <成果リポのパス>
+    TXT
+  end
+
+  def usage_and_exit(code)
+    puts usage_text
+    exit code
+  end
+
+  def check_tools!
+    raise UsageError, "bundle コマンドが見つかりません" unless Shell.tool_available?("bundle", "--version")
+    raise UsageError, "openssl コマンドが見つかりません" unless Shell.tool_available?("openssl", "version")
+  end
+
+  def check_repo!
+    raise UsageError, "成果リポが見つかりません: #{submission_repo}" unless Dir.exist?(submission_repo)
+
+    gemfile = File.join(submission_repo, "Gemfile")
+    raise UsageError, "成果リポに Gemfile がありません: #{gemfile}" unless File.file?(gemfile)
+  end
+
+  # --start: 着手後開封の封緘物を復号して復号先のパスを表示する。判定しない。
+  def do_start
+    entries = task.sealed_by_timing("on_start")
+    Seal.require_key! unless entries.empty? # 鍵不在なら着手を記録する前に止める
+    state.mark_started!
+    puts "着手を記録しました: #{ctx.rel(state.path)}（#{task_id}）"
+
+    if entries.empty?
+      puts "この課題に着手後開封の封緘物はありません。"
+    else
+      dest_dir = File.join(MATERIALS_ROOT, "unsealed", task_id)
+      entries.each do |e|
+        dest = File.join(dest_dir, e["file"])
+        Seal.decrypt(task.sealed_enc_path(e["file"]), dest)
+        state.record_unsealed!(e["file"], "on_start")
+        puts "開封しました: #{dest}"
+      end
+    end
+    puts "作業場所: #{ctx.submission_task_dir}"
+    0
+  end
+
+  def do_check
+    outcomes = judge_all
+    render(outcomes)
+    finish(outcomes)
+  end
+
+  # --report: 判定ログだけを書き出す（独立コンテキストの AI 検品へ回すため）。状態は書き換えない。
+  def do_report
+    outcomes = judge_all
+    path = File.join(submission_repo, ".check", "#{task_id}-report.md")
+    FileUtils.mkdir_p(File.dirname(path))
+    File.write(path, report_text(outcomes))
+    puts path
+    outcomes.any? { |o| o.status == :fail } ? 1 : 0
+  end
+
+  def judge_all
+    task.judges.map do |spec|
+      klass = JUDGE_TYPES[spec["type"]]
+      raise UsageError, "check.yml: 未知の judge 種別 #{spec['type'].inspect}" unless klass
+
+      klass.new(ctx, spec).run
+    end
+  end
+
+  def render(outcomes)
+    puts "課題 #{task_id}#{task.title.empty? ? '' : "（#{task.title}）"}"
+    puts "成果リポ: #{submission_repo}"
+    puts "着手: #{state.started? ? state.data['started_at'] : '未着手（bin/check --start で着手します）'}"
+    puts
+    outcomes.each do |o|
+      puts "[#{o.label}] #{o.name}"
+      o.lines.each { |l| puts "    #{l}" }
+    end
+    puts
+  end
+
+  def report_text(outcomes)
+    lines = ["# 判定ログ #{task_id}", "", "- 実行時刻: #{Time.now.strftime('%Y-%m-%dT%H:%M:%S%:z')}",
+             "- 成果リポ: #{submission_repo}", ""]
+    outcomes.each do |o|
+      lines << "## #{o.name}（#{o.id}）: #{o.label}"
+      o.lines.each { |l| lines << "- #{l}" }
+      lines << ""
+    end
+    lines.join("\n")
+  end
+
+  def finish(outcomes)
+    failed = outcomes.count { |o| o.status == :fail }
+    pending = outcomes.count { |o| o.status == :not_started }
+
+    if failed.positive?
+      puts "判定: 失敗 #{failed} 件#{pending.positive? ? "／未着手 #{pending} 件" : ''}"
+      state.record_check!("failed")
+      return 1
+    end
+
+    if pending.positive?
+      done = outcomes.size - pending
+      puts done.zero? ? "判定: まだ判定できる項目がありません（未着手 #{pending} 件）" \
+                      : "判定: ここまでは合格（#{done} 件）。未着手 #{pending} 件が残っています。"
+      state.record_check!("in_progress")
+      return 0
+    end
+
+    puts "判定: 合格"
+    state.record_check!("passed")
+    open_on_complete
+    0
+  end
+
+  def open_on_complete
+    entries = task.sealed_by_timing("on_complete")
+    return if entries.empty?
+
+    dest_dir = File.join(MATERIALS_ROOT, "unsealed", task_id)
+    entries.each do |e|
+      dest = File.join(dest_dir, e["file"])
+      Seal.decrypt(task.sealed_enc_path(e["file"]), dest)
+      state.record_unsealed!(e["file"], "on_complete")
+      puts "完了後開封: #{dest}"
+    end
+  end
+end
+
+begin
+  exit Runner.new(ARGV).call
+rescue UsageError => e
+  warn e.message
+  exit 2
+end

@@ -1,0 +1,39 @@
+# 課題 11。judge は設計文書「Ruby 基礎」§5 の「書き写し」の行。
+task: rb1-11-exceptions
+title: 例外
+format: 書き写し
+submission_dir: rb1-11-exceptions
+
+judges:
+  - id: copy-run
+    type: copy_run
+    name: 写しの実行
+    submission: exceptions_test.rb
+
+  - id: copy-assertions
+    type: assertion_count
+    name: 写しのアサーション数
+    submission: exceptions_test.rb
+    min: 19
+    runs_min: 8
+
+  - id: copy-format
+    type: rubocop
+    name: 写しの書式（RuboCop）
+    submission_paths:
+      - exceptions_test.rb
+
+  - id: why
+    type: why_diff
+    name: why.md が雛形と差分あり
+    template: why.md
+    submission: why.md
+
+  - id: exercise
+    type: exercise_test
+    name: 確認課題テスト
+    test: exercise/test/inventory_test.rb
+    load_paths:
+      - exercise/lib
+    requires:
+      - exercise/lib/inventory.rb

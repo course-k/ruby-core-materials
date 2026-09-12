@@ -1,0 +1,43 @@
+# 課題 7。judge は設計文書「Ruby 基礎」§5 の「書き写し」の行のうち、
+# 確認課題が出力予測型なので確認課題テストの代わりに predict を 2 本並べる。
+task: rb1-07-collections-enumerable
+title: Array / Hash / Range と Enumerable
+format: 書き写し（確認課題は出力予測型）
+submission_dir: rb1-07-collections-enumerable
+
+judges:
+  - id: copy-run
+    type: copy_run
+    name: 写しの実行
+    submission: collections_and_enumerable_test.rb
+
+  - id: copy-assertions
+    type: assertion_count
+    name: 写しのアサーション数
+    submission: collections_and_enumerable_test.rb
+    min: 23
+    runs_min: 13
+
+  - id: copy-format
+    type: rubocop
+    name: 写しの書式（RuboCop）
+    submission_paths:
+      - collections_and_enumerable_test.rb
+
+  - id: why
+    type: why_diff
+    name: why.md が雛形と差分あり
+    template: why.md
+    submission: why.md
+
+  - id: predict-01
+    type: predict
+    name: 出力予測 01
+    source: predict/01.rb
+    expected: predict/01.txt
+
+  - id: predict-02
+    type: predict
+    name: 出力予測 02
+    source: predict/02.rb
+    expected: predict/02.txt

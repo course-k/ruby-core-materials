@@ -1,0 +1,22 @@
+# 課題 1。judge は設計文書「Ruby 基礎」§5 の「ミニ統合〈道具の 1 周〉」の行。
+# スキーマは docs/check-yml.md。
+task: rb1-01-tooling
+title: 道具を 1 周する
+format: ミニ統合（道具の 1 周）
+submission_dir: rb1-01-tooling
+
+judges:
+  - id: template
+    type: template_test
+    name: 雛形テストの実行
+    test: template/test/fizzbuzz_test.rb
+    load_paths:
+      - template/lib
+      - template/test
+
+  - id: format
+    type: rubocop
+    name: 書式（RuboCop）
+    submission_paths:
+      - template/lib/fizzbuzz.rb
+      - template/test/fizzbuzz_test.rb

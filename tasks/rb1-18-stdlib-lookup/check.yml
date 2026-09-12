@@ -1,0 +1,41 @@
+# 書き写し課題。judge の構成は docs/check-yml.md の「形式別のひな型」を参照。
+# 原本は csv / logger（bundled gem）を require するため、アサーション数の実測は
+# 成果リポ側の Gemfile で行う（教材リポの Gemfile には csv / logger が無い）。
+task: rb1-18-stdlib-lookup
+title: 標準ライブラリを公式ドキュメントから引く
+format: 書き写し
+submission_dir: rb1-18-stdlib-lookup
+
+judges:
+  - id: copy-run
+    type: copy_run
+    name: 写しの実行
+    submission: stdlib_test.rb
+
+  - id: copy-assertions
+    type: assertion_count
+    name: 写しのアサーション数
+    submission: stdlib_test.rb
+    min: 19
+    runs_min: 8
+
+  - id: copy-format
+    type: rubocop
+    name: 写しの書式（RuboCop）
+    submission_paths:
+      - stdlib_test.rb
+
+  - id: why
+    type: why_diff
+    name: why.md が雛形と差分あり
+    template: why.md
+    submission: why.md
+
+  - id: exercise
+    type: exercise_test
+    name: 確認課題テスト
+    test: exercise/test/report_test.rb
+    load_paths:
+      - exercise/lib
+    requires:
+      - exercise/lib/report.rb
