@@ -1,5 +1,5 @@
 # 課題 2。judge は設計文書「Ruby 基礎」§5 の「書き写し」の行。
-# スキーマは docs/check-yml.md。写しの照合は exercise_test を copy_test/ へ向けて使う。
+# スキーマは docs/check-yml.md。写しの照合は exercise_test を copy_test/ へ向けて使う（写しは定義だけ。呼び出しは照合テスト側）。
 task: rb1-02-twenty-minutes
 title: Ruby in Twenty Minutes を書き写す
 format: 書き写し

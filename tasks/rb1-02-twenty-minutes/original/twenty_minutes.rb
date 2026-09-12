@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 # 手本の原本 — 公式の入門「Ruby in Twenty Minutes」全 4 部のコード。
-# 前半は定義（メソッドとクラス）、後半はそれを使って結果を表示する部分。
-# 写しの照合テストは copy_test/twenty_minutes_test.rb（読んでよい。写さない）。
+# 手本に置くのは定義（hi / Greeter / Greeter の再オープン / MegaGreeter）だけ。
+# 定義を呼び出して動きを確かめるコードは写しの照合テスト copy_test/twenty_minutes_test.rb に
+# ある（教材が配る。読んでよい。写さない）。
 #
 # 底本と、行の文言に現れる識別子が実在する節:
 #   puts / 算術演算子 + * ** / Math.sqrt / ローカル変数への代入
@@ -74,46 +75,3 @@ class MegaGreeter
     end
   end
 end
-
-# 第 1 部: irb で評価した式。=> の右に出ていた値を p で表示する
-puts "Hello World"
-p 3 + 2
-p 3 * 2
-p 3**2
-p Math.sqrt(9)
-a = 3**2
-b = 4**2
-p Math.sqrt(a + b)
-
-# 第 2 部: hi は名前を大文字始まりにし、省くと World になる
-hi "chris"
-hi
-
-# 第 2 部: Greeter は作ったときの名前で挨拶する
-greeter = Greeter.new("Pat")
-greeter.say_hi
-greeter.say_bye
-
-# 第 3 部: respond_to? で持っているメソッドを確かめ、attr_accessor で足した name= で名前を変える
-p greeter.respond_to?("say_hi")
-p greeter.respond_to?("name")
-greeter.name = "Betty"
-p greeter.name
-greeter.say_hi
-
-# 第 3 部: MegaGreeter は 1 つの名前・名前の配列・nil のそれぞれに応じる
-mg = MegaGreeter.new
-mg.say_hi
-mg.say_bye
-# Change name to be "Zeke"
-mg.names = "Zeke"
-mg.say_hi
-mg.say_bye
-# Change the name to an array of names
-mg.names = ["Albert", "Brenda", "Charles", "Dave", "Engelbert"]
-mg.say_hi
-mg.say_bye
-# Change to nil
-mg.names = nil
-mg.say_hi
-mg.say_bye
