@@ -432,6 +432,21 @@ git add .
 git commit -m "rb1-01: 道具を 1 周し、FizzBuzz の雛形を動かした"
 ```
 
+続けて、成果リポを GitHub に公開リポジトリとして作り、push する。成果リポは学習記録として公開する
+（README の「AI の関与について」がその開示）。`gh` は GitHub の公式コマンドラインツールで、
+ログイン済みのアカウントにリポジトリを作れる。最初に `gh auth status` で、使うアカウントで
+ログインしていることを確かめる。
+
+```sh
+cd ~/lab/ruby-learning/ruby-core
+gh auth status
+gh repo create <GitHub のユーザー名>/ruby-core --public --source=. --remote=origin --push --description "Ruby 基礎・中級の学習記録"
+git remote -v
+```
+
+`origin` に `github.com` の URL が表示されれば公開できている。以降の課題では、コミットした後に
+`git push` を打つだけでよい。
+
 ## 完了の判定
 
 次の 5 つがすべて満たされたときに、この課題は完了とする。
@@ -440,8 +455,8 @@ git commit -m "rb1-01: 道具を 1 周し、FizzBuzz の雛形を動かした"
 2. 手順 7（irb）と手順 8（debug）を実際に実行した。これらは機械判定の対象ではないので、
    自分で「やった」と言えることが条件になる。
 3. 手順 9 の (a) (b) を実際に壊して失敗を見て、戻した。
-4. 手順 3 で `~/.config/ruby-learning/seal.key` を置き、`ls -l` で確かめた。
-5. `progress.md` に `完了` と日付が書かれ、成果リポにコミットされている。
+4. 手順 3 で `~/.config/ruby-learning/seal.key` があることを `ls -l` で確かめた。
+5. `progress.md` に `完了` と日付が書かれ、成果リポにコミットされ、GitHub に push されている。
 
 ## 進捗の記録
 
