@@ -24,7 +24,7 @@
 - 課題 1 で作った成果リポに `Gemfile` / `.ruby-version` があり、`bundle install` が済んでいること。
 - 教材リポ（このファイルがあるリポジトリ）で `bundle install` が済んでいること。
 - 課題 12 を終えていること。課題 12 で説明した「中身を読めない判定テスト」がこの課題にも 1 つある。
-- 封緘の鍵が `~/.config/ruby-learning/seal.key` にあること（置き方は課題 1 の README の手順 3）。
+- 封緘の鍵が `~/.config/ruby-learning/seal.key` にあること（確かめ方は課題 1 の README の手順 3）。
   無いと `bin/check` は終了コード 2 で止まる。
 - 課題 3・7・9・10・11・13・14 を終えていること。
 
