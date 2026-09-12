@@ -1,28 +1,25 @@
 # 課題 2。judge は設計文書「Ruby 基礎」§5 の「書き写し」の行。
-# スキーマは docs/check-yml.md。
+# スキーマは docs/check-yml.md。写しの照合は exercise_test を copy_test/ へ向けて使う。
 task: rb1-02-twenty-minutes
 title: Ruby in Twenty Minutes を書き写す
 format: 書き写し
 submission_dir: rb1-02-twenty-minutes
 
 judges:
-  - id: copy-run
-    type: copy_run
-    name: 写しの実行
-    submission: twenty_minutes_test.rb
-
-  - id: copy-assertions
-    type: assertion_count
-    name: 写しのアサーション数
-    submission: twenty_minutes_test.rb
-    min: 15
-    runs_min: 5
+  - id: copy-check
+    type: exercise_test
+    name: 写しの照合
+    test: copy_test/twenty_minutes_test.rb
+    load_paths:
+      - .
+    requires:
+      - twenty_minutes.rb
 
   - id: copy-format
     type: rubocop
     name: 写しの書式（RuboCop）
     submission_paths:
-      - twenty_minutes_test.rb
+      - twenty_minutes.rb
 
   - id: why
     type: why_diff

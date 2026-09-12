@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 # 手本の原本 — 公式の入門「Ruby in Twenty Minutes」全 4 部のコード。
+# 前半は定義（メソッドとクラス）、後半はそれを使って結果を表示する部分。
+# 写しの照合テストは copy_test/twenty_minutes_test.rb（読んでよい。写さない）。
 #
 # 底本と、行の文言に現れる識別子が実在する節:
 #   puts / 算術演算子 + * ** / Math.sqrt / ローカル変数への代入
@@ -15,8 +17,6 @@
 #     https://www.ruby-lang.org/en/documentation/quickstart/4/
 #
 # 教材がこの手本に加えた編集は commentary.md の「原典との差分」に書いてある。
-
-require "minitest/autorun"
 
 def hi(name = "World")
   puts "Hello #{name.capitalize}!"
@@ -75,42 +75,45 @@ class MegaGreeter
   end
 end
 
-class TwentyMinutesTest < Minitest::Test
-  def test_expressions_evaluated_in_irb
-    assert_equal 5, 3 + 2
-    assert_equal 9, 3**2
-    a = 3**2
-    b = 4**2
-    assert_equal 5.0, Math.sqrt(a + b)
-  end
+# 第 1 部: irb で評価した式。=> の右に出ていた値を p で表示する
+puts "Hello World"
+p 3 + 2
+p 3 * 2
+p 3**2
+p Math.sqrt(9)
+a = 3**2
+b = 4**2
+p Math.sqrt(a + b)
 
-  def test_hi_capitalizes_the_name_and_falls_back_to_world
-    assert_output("Hello Chris!\n") { hi "chris" }
-    assert_output("Hello World!\n") { hi }
-  end
+# 第 2 部: hi は名前を大文字始まりにし、省くと World になる
+hi "chris"
+hi
 
-  def test_greeter_greets_with_the_name_it_was_built_with
-    greeter = Greeter.new("Pat")
-    assert_output("Hi Pat!\n") { greeter.say_hi }
-    assert_output("Bye Pat, come back soon.\n") { greeter.say_bye }
-  end
+# 第 2 部: Greeter は作ったときの名前で挨拶する
+greeter = Greeter.new("Pat")
+greeter.say_hi
+greeter.say_bye
 
-  def test_greeter_answers_for_the_methods_it_has
-    greeter = Greeter.new("Andy")
-    assert greeter.respond_to?("say_hi")
-    assert greeter.respond_to?("name")
-    greeter.name = "Betty"
-    assert_output("Hi Betty!\n") { greeter.say_hi }
-  end
+# 第 3 部: respond_to? で持っているメソッドを確かめ、attr_accessor で足した name= で名前を変える
+p greeter.respond_to?("say_hi")
+p greeter.respond_to?("name")
+greeter.name = "Betty"
+p greeter.name
+greeter.say_hi
 
-  def test_mega_greeter_handles_one_name_a_list_and_nil
-    mg = MegaGreeter.new
-    assert_output("Hello World!\n") { mg.say_hi }
-    assert_output("Goodbye World.  Come back soon!\n") { mg.say_bye }
-    mg.names = ["Albert", "Brenda"]
-    assert_output("Hello Albert!\nHello Brenda!\n") { mg.say_hi }
-    assert_output("Goodbye Albert, Brenda.  Come back soon!\n") { mg.say_bye }
-    mg.names = nil
-    assert_output("...\n") { mg.say_hi }
-  end
-end
+# 第 3 部: MegaGreeter は 1 つの名前・名前の配列・nil のそれぞれに応じる
+mg = MegaGreeter.new
+mg.say_hi
+mg.say_bye
+# Change name to be "Zeke"
+mg.names = "Zeke"
+mg.say_hi
+mg.say_bye
+# Change the name to an array of names
+mg.names = ["Albert", "Brenda", "Charles", "Dave", "Engelbert"]
+mg.say_hi
+mg.say_bye
+# Change to nil
+mg.names = nil
+mg.say_hi
+mg.say_bye

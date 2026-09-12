@@ -8,7 +8,7 @@
 
 - Ruby のプログラムを構成する部品（メソッド定義・クラス定義・インスタンス変数・文字列の式展開・
   条件分岐・繰り返し）が、1 つのファイルの中でどう並ぶかを目で追える。
-- `puts` で出力するコードを、テストの中から実行して出力を確かめられる。
+- `puts` で出力するコードを走らせ、表示された行を教材が用意したテストで確かめられる。
 - 手本を自分の手で打ち込み、`bin/check` で「写しが動くか・書式が Ruby らしいか」を確認できる。
 
 ここで触れる部品は、課題 4（値と真偽）・課題 8（メソッドと引数）・課題 10（クラス）で 1 つずつ改めて深める。
@@ -17,6 +17,11 @@
 用語の確認（課題 1 で定義したもの）: **教材リポ**は `~/lab/ruby-learning/ruby-core-materials`（読むだけ）、
 **成果リポ**は `~/lab/ruby-learning/ruby-core`（自分が書いたものを置く）、
 **課題番号**は `rb1-02-twenty-minutes` のような名前で、両リポの同名ディレクトリが対応する。
+
+この課題で初めて出る語: **照合テスト**は、教材が用意した、写しを読み込んで表示された行を確かめるテスト。
+教材リポの `tasks/rb1-02-twenty-minutes/copy_test/` にある。**写さない。読んでよい。** 落ちたときは
+「どの節の・何行目が・何を出すべきか」が Expected（期待した値）／Actual（実際の値）で出る。
+以降の書き写し課題でも同じ位置に置かれる（課題 3 だけは手本自体がテストなので無い）。
 
 ## 初めて使う道具
 
@@ -33,7 +38,7 @@
 
 1. 手本のファイルを読む。
 2. **手で打ち込んで**成果リポに写す。
-3. 写しを走らせて通す。
+3. 写しを走らせて表示を見て、照合テストで確かめる。
 4. 「なぜこう書くか」を自分の言葉で書く。
 5. 模範解説を開いて突き合わせる。
 6. 確認課題を解く。
@@ -47,10 +52,12 @@
 
 ### 手順 1 — 手本を読む
 
-開くファイル: `~/lab/ruby-learning/ruby-core-materials/tasks/rb1-02-twenty-minutes/original/twenty_minutes_test.rb`
+開くファイル: `~/lab/ruby-learning/ruby-core-materials/tasks/rb1-02-twenty-minutes/original/twenty_minutes.rb`
 
 この手本は、Ruby 公式サイトの入門「Ruby in Twenty Minutes」（全 4 部）に載っているコードを、
-1 つの実行できるファイルにまとめたもの。
+1 つの実行できるファイルにまとめたもの。前半がメソッドとクラスの定義、後半がそれを使って
+結果を `puts` / `p` で表示する部分で、原典が irb の `=>` の右に見せている値を `p` で表示している。
+照合テスト `copy_test/twenty_minutes_test.rb` も開いてよい。表示されるべき行が節ごとに書いてある。
 底本の URL はファイル冒頭のコメントにある。先にそのページを読んでおくと分かりやすい。
 
 ### 手順 2 — 成果リポへ手で打ち込む
@@ -62,23 +69,45 @@ cd ~/lab/ruby-learning/ruby-core
 mkdir -p rb1-02-twenty-minutes
 ```
 
-エディタで `rb1-02-twenty-minutes/twenty_minutes_test.rb` を新規作成し、手本を手で打ち込む。
+エディタで `rb1-02-twenty-minutes/twenty_minutes.rb` を新規作成し、手本を手で打ち込む。
+
+以前の形の手本（`twenty_minutes_test.rb`。minitest のテストクラスが末尾に付いていた）から
+写し始めていた場合は、そのファイルを次の 1 回の `mv` で新しい名前にし、`require "minitest/autorun"`
+の行を消す。定義（`hi` / `Greeter` / `MegaGreeter`）はそのまま活きるので打ち直さない。
+残りは手本の後半（表示する部分）を打ち足すだけでよい。
+
+```sh
+cd ~/lab/ruby-learning/ruby-core
+mv rb1-02-twenty-minutes/twenty_minutes_test.rb rb1-02-twenty-minutes/twenty_minutes.rb
+```
 
 - 1 行目の `# frozen_string_literal: true` は写す（何をする行かは課題 6 で扱う）。その下の底本の URL を書いたコメント群は写さなくてよい。
 - クラス名・メソッド名・変数名・文字列は手本どおりに写す。
 
-### 手順 3 — 写しを走らせる
+### 手順 3 — 写しを走らせ、照合テストで確かめる
 
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby rb1-02-twenty-minutes/twenty_minutes_test.rb
+bundle exec ruby rb1-02-twenty-minutes/twenty_minutes.rb
 ```
 
-最終行に `5 runs, 15 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
+26 行の表示が出る。1 行目が `Hello World`、最後の 2 行が `...` である。原典の各部で irb が返していた値と
+見比べる。エラーで止まるときは、表示された行番号の打ち間違いを探す。
+
+次に照合テストを走らせる。テストは教材リポにあり、写しを置いたディレクトリを `-I` で教える。
+
+```sh
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby -Irb1-02-twenty-minutes \
+    ../ruby-core-materials/tasks/rb1-02-twenty-minutes/copy_test/twenty_minutes_test.rb
+```
+
+最終行に `6 runs, 27 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
 `failures` や `errors` が 0 でないときは、表示される
-「期待した値（Expected）／実際の値（Actual）」を読んで打ち間違いを探す。
+「期待した値（Expected）／実際の値（Actual）」を読んで打ち間違いを探す。テスト名の `part1`〜`part3` が
+原典の部、`OUTPUT[n]` の `n + 1` が表示の行番号である。
 
 書式も確かめておく。
 
@@ -86,7 +115,7 @@ bundle exec ruby rb1-02-twenty-minutes/twenty_minutes_test.rb
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core-materials
-bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-02-twenty-minutes/twenty_minutes_test.rb
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-02-twenty-minutes/twenty_minutes.rb
 ```
 
 `no offenses detected` になるまで直す。
@@ -161,7 +190,7 @@ bin/check rb1-02-twenty-minutes ../ruby-core
 次がすべて満たされたときに完了とする。判定の正本はこの節である。
 
 1. `bin/check rb1-02-twenty-minutes ../ruby-core` の全項目が `[合格]`（終了コード 0）。
-   内訳は「写しの実行」「写しのアサーション数」「写しの書式」「`why.md` が雛形と差分あり」「確認課題テスト」の 5 項目。
+   内訳は「写しの照合」「写しの書式」「`why.md` が雛形と差分あり」「確認課題テスト」の 4 項目。
 2. 機械判定に載らない工程として、次の 2 つを終えている。
    - `why.md` を、模範解説（`commentary.md`）を開く前に自分の言葉で書いた。
    - `commentary.md` を読み、自分の説明と食い違った点を `why.md` に書き足した。
