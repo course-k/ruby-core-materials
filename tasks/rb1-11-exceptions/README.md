@@ -73,7 +73,7 @@ mkdir -p rb1-11-exceptions
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby -Irb1-11-exceptions \\
+bundle exec ruby -Irb1-11-exceptions \
     ../ruby-core-materials/tasks/rb1-11-exceptions/copy_test/exceptions_test.rb
 ```
 

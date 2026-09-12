@@ -71,7 +71,7 @@ mkdir -p rb1-13-modules-mixins
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby -Irb1-13-modules-mixins \\
+bundle exec ruby -Irb1-13-modules-mixins \
     ../ruby-core-materials/tasks/rb1-13-modules-mixins/copy_test/modules_test.rb
 ```
 

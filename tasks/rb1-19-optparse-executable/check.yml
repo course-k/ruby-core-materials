@@ -6,23 +6,23 @@ format: 書き写し
 submission_dir: rb1-19-optparse-executable
 
 judges:
-  - id: copy-run
-    type: copy_run
-    name: 写しの実行
-    submission: executable_test.rb
-
-  - id: copy-assertions
-    type: assertion_count
-    name: 写しのアサーション数
-    submission: executable_test.rb
-    min: 13
-    runs_min: 4
+  - id: copy-check
+    type: exercise_test
+    name: 写しの照合
+    test: copy_test/optparse_basics_test.rb
+    load_paths:
+      - .
+    requires:
+      - optparse_basics.rb
+      - lib/greeter.rb
+      - exe/greet
 
   - id: copy-format
     type: rubocop
     name: 写しの書式（RuboCop）
     submission_paths:
-      - executable_test.rb
+      - optparse_basics.rb
+      - lib/greeter.rb
 
   - id: why
     type: why_diff

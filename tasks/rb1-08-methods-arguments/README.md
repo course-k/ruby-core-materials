@@ -70,7 +70,7 @@ mkdir -p rb1-08-methods-arguments
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby -Irb1-08-methods-arguments \\
+bundle exec ruby -Irb1-08-methods-arguments \
     ../ruby-core-materials/tasks/rb1-08-methods-arguments/copy_test/methods_and_arguments_test.rb
 ```
 

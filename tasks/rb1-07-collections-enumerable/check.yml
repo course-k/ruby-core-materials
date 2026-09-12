@@ -6,23 +6,20 @@ format: 書き写し（確認課題は出力予測型）
 submission_dir: rb1-07-collections-enumerable
 
 judges:
-  - id: copy-run
-    type: copy_run
-    name: 写しの実行
-    submission: collections_and_enumerable_test.rb
-
-  - id: copy-assertions
-    type: assertion_count
-    name: 写しのアサーション数
-    submission: collections_and_enumerable_test.rb
-    min: 23
-    runs_min: 13
+  - id: copy-check
+    type: exercise_test
+    name: 写しの照合
+    test: copy_test/collections_and_enumerable_test.rb
+    load_paths:
+      - .
+    requires:
+      - collections_and_enumerable.rb
 
   - id: copy-format
     type: rubocop
     name: 写しの書式（RuboCop）
     submission_paths:
-      - collections_and_enumerable_test.rb
+      - collections_and_enumerable.rb
 
   - id: why
     type: why_diff

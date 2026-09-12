@@ -87,7 +87,7 @@ printf 'alpha\nbeta\n' | bundle exec ruby some_script.rb
 
 1. 手本のファイルを読む。
 2. **手で打ち込んで**成果リポに写す。
-3. 写しを走らせて通す。
+3. 写しを照合テストで確かめる。
 4. 「なぜこう書くか」を自分の言葉で書く。
 5. 模範解説を開いて突き合わせる。
 6. スクリプトとして端末から 1 度動かす。
@@ -102,7 +102,7 @@ printf 'alpha\nbeta\n' | bundle exec ruby some_script.rb
 
 ### 手順 1 — 手本を読む
 
-開くファイル: `~/lab/ruby-learning/ruby-core-materials/tasks/rb1-05-control-flow-io/original/control_flow_and_io_test.rb`
+開くファイル: `~/lab/ruby-learning/ruby-core-materials/tasks/rb1-05-control-flow-io/original/control_flow_and_io.rb`
 
 この手本は、公式リファレンスの Control Expressions・Precedence・Calling Methods（Safe Navigation Operator 節）と、
 Kernel の `puts` / `warn` / `exit` の項に載っている例をつないだもの。
@@ -117,18 +117,19 @@ cd ~/lab/ruby-learning/ruby-core
 mkdir -p rb1-05-control-flow-io
 ```
 
-エディタで `rb1-05-control-flow-io/control_flow_and_io_test.rb` を新規作成し、手本を手で打ち込む。
+エディタで `rb1-05-control-flow-io/control_flow_and_io.rb` を新規作成し、手本を手で打ち込む。
 
 - 1 行目の `# frozen_string_literal: true` は写す（何をする行かは課題 6 で扱う）。その下の底本の URL を書いたコメント群は写さなくてよい。
 - クラス名・メソッド名・変数名・文字列は手本どおりに写す。
 
-### 手順 3 — 写しを走らせる
+### 手順 3 — 写しを照合テストで確かめる
 
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby rb1-05-control-flow-io/control_flow_and_io_test.rb
+bundle exec ruby -Irb1-05-control-flow-io \
+    ../ruby-core-materials/tasks/rb1-05-control-flow-io/copy_test/control_flow_and_io_test.rb
 ```
 
 最終行に `11 runs, 14 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
@@ -141,7 +142,7 @@ bundle exec ruby rb1-05-control-flow-io/control_flow_and_io_test.rb
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core-materials
-bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-05-control-flow-io/control_flow_and_io_test.rb
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-05-control-flow-io/control_flow_and_io.rb
 ```
 
 `no offenses detected` になるまで直す。
@@ -267,7 +268,7 @@ bin/check rb1-05-control-flow-io ../ruby-core
 次がすべて満たされたときに完了とする。判定の正本はこの節である。
 
 1. `bin/check rb1-05-control-flow-io ../ruby-core` の全項目が `[合格]`（終了コード 0）。
-   内訳は「写しの実行」「写しのアサーション数」「写しの書式」「`why.md` が雛形と差分あり」「確認課題テスト」の 5 項目。
+   内訳は「写しの照合」「写しの書式」「`why.md` が雛形と差分あり」「確認課題テスト」の 5 項目。
 2. 機械判定に載らない工程として、次の 2 つを終えている。
    - `why.md` を、模範解説（`commentary.md`）を開く前に自分の言葉で書いた。
    - `commentary.md` を読み、自分の説明と食い違った点を `why.md` に書き足した。

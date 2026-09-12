@@ -72,7 +72,7 @@ mkdir -p rb1-14-equality-value-objects
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby -Irb1-14-equality-value-objects \\
+bundle exec ruby -Irb1-14-equality-value-objects \
     ../ruby-core-materials/tasks/rb1-14-equality-value-objects/copy_test/value_objects_test.rb
 ```
 

@@ -70,7 +70,7 @@ mkdir -p rb1-06-strings-symbols
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby -Irb1-06-strings-symbols \\
+bundle exec ruby -Irb1-06-strings-symbols \
     ../ruby-core-materials/tasks/rb1-06-strings-symbols/copy_test/strings_and_symbols_test.rb
 ```
 

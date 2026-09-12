@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require_relative "../lib/greeter"
+
+if __FILE__ == $0
+  options = { name: "world", loud: false }
+  OptionParser.new do |parser|
+    parser.banner = "Usage: greet [options]"
+    parser.on("-n NAME", "--name NAME", "Who to greet")
+    parser.on("-l", "--loud", "Shout the greeting")
+  end.parse!(into: options)
+
+  puts Greeter.call(options[:name], loud: options[:loud])
+end

@@ -69,7 +69,7 @@ mkdir -p rb1-17-files-io
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby -Irb1-17-files-io \\
+bundle exec ruby -Irb1-17-files-io \
     ../ruby-core-materials/tasks/rb1-17-files-io/copy_test/files_test.rb
 ```
 

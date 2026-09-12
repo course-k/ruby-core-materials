@@ -6,23 +6,20 @@ format: 書き写し（確認課題はデバッグ型）
 submission_dir: rb1-05-control-flow-io
 
 judges:
-  - id: copy-run
-    type: copy_run
-    name: 写しの実行
-    submission: control_flow_and_io_test.rb
-
-  - id: copy-assertions
-    type: assertion_count
-    name: 写しのアサーション数
-    submission: control_flow_and_io_test.rb
-    min: 14
-    runs_min: 11
+  - id: copy-check
+    type: exercise_test
+    name: 写しの照合
+    test: copy_test/control_flow_and_io_test.rb
+    load_paths:
+      - .
+    requires:
+      - control_flow_and_io.rb
 
   - id: copy-format
     type: rubocop
     name: 写しの書式（RuboCop）
     submission_paths:
-      - control_flow_and_io_test.rb
+      - control_flow_and_io.rb
 
   - id: why
     type: why_diff

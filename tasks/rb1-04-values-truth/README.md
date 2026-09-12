@@ -72,7 +72,7 @@ mkdir -p rb1-04-values-truth
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby -Irb1-04-values-truth \\
+bundle exec ruby -Irb1-04-values-truth \
     ../ruby-core-materials/tasks/rb1-04-values-truth/copy_test/values_and_truth_test.rb
 ```
 

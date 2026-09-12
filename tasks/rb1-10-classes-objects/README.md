@@ -72,7 +72,7 @@ mkdir -p rb1-10-classes-objects
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby -Irb1-10-classes-objects \\
+bundle exec ruby -Irb1-10-classes-objects \
     ../ruby-core-materials/tasks/rb1-10-classes-objects/copy_test/classes_and_objects_test.rb
 ```
 

@@ -72,7 +72,7 @@ mkdir -p rb1-15-pattern-matching
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby -Irb1-15-pattern-matching \\
+bundle exec ruby -Irb1-15-pattern-matching \
     ../ruby-core-materials/tasks/rb1-15-pattern-matching/copy_test/pattern_matching_test.rb
 ```
 

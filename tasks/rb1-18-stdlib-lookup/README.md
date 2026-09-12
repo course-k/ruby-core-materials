@@ -103,7 +103,7 @@ mkdir -p rb1-18-stdlib-lookup
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby -Irb1-18-stdlib-lookup \\
+bundle exec ruby -Irb1-18-stdlib-lookup \
     ../ruby-core-materials/tasks/rb1-18-stdlib-lookup/copy_test/stdlib_test.rb
 ```
 
