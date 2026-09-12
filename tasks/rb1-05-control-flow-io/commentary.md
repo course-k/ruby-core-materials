@@ -35,6 +35,9 @@ Kernel の `puts` / `warn` / `exit` の項、Object の `ARGV` の項、IO の�
    表の「`&&` は代入より強く、`and` は代入より弱い」という記述を、
    2 行のコードと 1 つの `assert_equal` に起こしたもの。
 
+8. **後置 `until` の例は変数名を `a` から `b` に改名した。** 底本（Control Expressions の Modifier until）は
+   `a += 1 until a > 10`。同じテストメソッド内で先に `a` を使っているため衝突を避けて `b` にした。
+
 ## 読み解き
 
 ### 分岐は全部「値を返す式」

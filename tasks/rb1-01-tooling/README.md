@@ -387,7 +387,7 @@ $ bundle exec ruby -Irb1-01-tooling/template/lib -Irb1-01-tooling/template/test 
 
 - 壊す: `rb1-01-tooling/template/lib/fizzbuzz.rb` の `return "Fizz" if (number % 3).zero?` の
   `"Fizz"` を `"fizz"`（小文字）に書き換える。
-- 確かめる: 手順 5 のコマンド。`1 failures` などと出て、
+- 確かめる: 手順 5 のコマンド。2 つのテストが落ちて `2 failures` と出て、
   `Expected: "Fizz"` / `Actual: "fizz"` の形で食い違いが表示される。
 - 戻す: `"Fizz"` に書き戻す。
 - 戻ったことの確認: 手順 5 のコマンドで `0 failures, 0 errors` に戻ること。
@@ -395,7 +395,7 @@ $ bundle exec ruby -Irb1-01-tooling/template/lib -Irb1-01-tooling/template/test 
 **(b) 書式を崩す**
 
 - 壊す: 同じファイルの `number.to_s` の行の行頭に空白を 4 つ足し、行末に `;`（セミコロン）を足す。
-- 確かめる: 手順 6 のコマンド。`Layout/IndentationWidth` と `Style/Semicolon` の指摘が出る。
+- 確かめる: 手順 6 のコマンド。Layout の指摘（`Layout/IndentationConsistency`）と `Style/Semicolon` の指摘が出る。
   **このときテスト（手順 5）は通ったままである**ことも確かめる。テストは書式の逸脱を見つけられない。
 - 戻す: 足した空白とセミコロンを消す。
 - 戻ったことの確認: 手順 6 のコマンドで `no offenses detected` に戻ること。

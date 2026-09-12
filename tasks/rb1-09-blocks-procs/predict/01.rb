@@ -32,7 +32,7 @@ def return_inside_a_lambda
 end
 
 mapped = [1, 2, 3, 4].map do |n|
-  next 0 if n.odd?
+  next 0 unless n.even?
 
   n
 end
