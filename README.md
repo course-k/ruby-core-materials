@@ -1,6 +1,6 @@
 # ruby-core-materials — Ruby 軸の教材リポジトリ
 
-Ruby / Ruby on Rails の学習計画（`~/lab/ruby-learning/docs/`）のうち、**Ruby 軸の教材**を置くリポジトリ。
+Ruby / Ruby on Rails の学習計画（`~/lab/ruby-learning/docs/`）のうち、**Ruby 軸の教材**を置くリポジトリ。公開元: https://github.com/course-k/ruby-core-materials
 課題文・手本の原本・確認課題の雛形とテスト・封緘物・模範解説・判定ツール `bin/check` が入る。
 
 学習者の解答は別のリポジトリ（成果リポ `ruby-core`）に入る。このリポジトリは学習者にとって

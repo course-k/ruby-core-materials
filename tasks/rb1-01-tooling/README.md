@@ -20,7 +20,7 @@
 
 ## 用語（この教材で使う呼び名）
 
-- **教材リポ**: `~/lab/ruby-learning/ruby-core-materials`。課題文・手本・雛形・判定ツールが入っている。
+- **教材リポ**: `~/lab/ruby-learning/ruby-core-materials`。課題文・手本・雛形・判定ツールが入っている。公開元は https://github.com/course-k/ruby-core-materials （手元に無い環境では `git clone git@github.com:course-k/ruby-core-materials.git ~/lab/ruby-learning/ruby-core-materials` で取れる。このリポジトリには封緘の鍵は入っていない）。
   読むだけで、ここには何も書かない。
 - **成果リポ**: `~/lab/ruby-learning/ruby-core`。あなたが書いたものを置く場所。
   課題ごとに `<課題番号>/` というディレクトリを作る。
