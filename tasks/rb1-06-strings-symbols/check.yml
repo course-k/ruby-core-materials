@@ -5,23 +5,20 @@ format: 書き写し
 submission_dir: rb1-06-strings-symbols
 
 judges:
-  - id: copy-run
-    type: copy_run
-    name: 写しの実行
-    submission: strings_and_symbols_test.rb
-
-  - id: copy-assertions
-    type: assertion_count
-    name: 写しのアサーション数
-    submission: strings_and_symbols_test.rb
-    min: 30
-    runs_min: 13
+  - id: copy-check
+    type: exercise_test
+    name: 写しの照合
+    test: copy_test/strings_and_symbols_test.rb
+    load_paths:
+      - .
+    requires:
+      - strings_and_symbols.rb
 
   - id: copy-format
     type: rubocop
     name: 写しの書式（RuboCop）
     submission_paths:
-      - strings_and_symbols_test.rb
+      - strings_and_symbols.rb
 
   - id: why
     type: why_diff

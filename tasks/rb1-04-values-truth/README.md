@@ -29,7 +29,7 @@
 
 1. 手本のファイルを読む。
 2. **手で打ち込んで**成果リポに写す。
-3. 写しを走らせて通す。
+3. 写しを照合テストで確かめる。
 4. 「なぜこう書くか」を自分の言葉で書く。
 5. 模範解説を開いて突き合わせる。
 6. 確認課題を解く。
@@ -43,11 +43,13 @@
 
 ### 手順 1 — 手本を読む
 
-開くファイル: `~/lab/ruby-learning/ruby-core-materials/tasks/rb1-04-values-truth/original/values_and_truth_test.rb`
+開くファイル: `~/lab/ruby-learning/ruby-core-materials/tasks/rb1-04-values-truth/original/values_and_truth.rb`
 
 この手本は、公式リファレンスの Literals（Boolean and Nil Literals）・Control Expressions と、
 公式サイトの「Ruby From Other Languages」の Everything has a value / The universal truth 節に
 載っている例をつないだもの。
+手本は**定義だけ**。定義を呼び出して結果を確かめるコードは、教材が配る照合テスト
+`copy_test/values_and_truth_test.rb` にある。**写さない。読んでよい。**
 底本の URL はファイル冒頭のコメントにある。先にそのページを読んでおくと分かりやすい。
 
 ### 手順 2 — 成果リポへ手で打ち込む
@@ -59,21 +61,22 @@ cd ~/lab/ruby-learning/ruby-core
 mkdir -p rb1-04-values-truth
 ```
 
-エディタで `rb1-04-values-truth/values_and_truth_test.rb` を新規作成し、手本を手で打ち込む。
+エディタで `rb1-04-values-truth/values_and_truth.rb` を新規作成し、手本を手で打ち込む。
 
 - 1 行目の `# frozen_string_literal: true` は写す（何をする行かは課題 6 で扱う）。その下の底本の URL を書いたコメント群は写さなくてよい。
 - クラス名・メソッド名・変数名・文字列は手本どおりに写す。
 
-### 手順 3 — 写しを走らせる
+### 手順 3 — 写しを照合テストで確かめる
 
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby rb1-04-values-truth/values_and_truth_test.rb
+bundle exec ruby -Irb1-04-values-truth \\
+    ../ruby-core-materials/tasks/rb1-04-values-truth/copy_test/values_and_truth_test.rb
 ```
 
-最終行に `8 runs, 15 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
+最終行に `8 runs, 20 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
 `failures` や `errors` が 0 でないときは、表示される
 「期待した値（Expected）／実際の値（Actual）」を読んで打ち間違いを探す。
 
@@ -83,7 +86,7 @@ bundle exec ruby rb1-04-values-truth/values_and_truth_test.rb
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core-materials
-bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-04-values-truth/values_and_truth_test.rb
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-04-values-truth/values_and_truth.rb
 ```
 
 `no offenses detected` になるまで直す。
@@ -164,7 +167,7 @@ bin/check rb1-04-values-truth ../ruby-core
 次がすべて満たされたときに完了とする。判定の正本はこの節である。
 
 1. `bin/check rb1-04-values-truth ../ruby-core` の全項目が `[合格]`（終了コード 0）。
-   内訳は「写しの実行」「写しのアサーション数」「写しの書式」「`why.md` が雛形と差分あり」「確認課題テスト」の 5 項目。
+   内訳は「写しの照合」「写しの書式」「`why.md` が雛形と差分あり」「確認課題テスト」の 5 項目。
 2. 機械判定に載らない工程として、次の 2 つを終えている。
    - `why.md` を、模範解説（`commentary.md`）を開く前に自分の言葉で書いた。
    - `commentary.md` を読み、自分の説明と食い違った点を `why.md` に書き足した。

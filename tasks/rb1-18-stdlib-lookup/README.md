@@ -75,10 +75,12 @@ bundle install
 
 ### 手順 2 — 手本を読む
 
-開くファイル: `~/lab/ruby-learning/ruby-core-materials/tasks/rb1-18-stdlib-lookup/original/stdlib_test.rb`
+開くファイル: `~/lab/ruby-learning/ruby-core-materials/tasks/rb1-18-stdlib-lookup/original/stdlib.rb`
 
 この手本は、公式リファレンスの JSON・Time・ERB の各項と、bundled gem の csv 3.3.5・logger 1.7.0 の
 リポジトリ（タグ固定）に載っている例をつないだもの。
+手本は**定義だけ**。定義を呼び出して結果を確かめるコードは、教材が配る照合テスト
+`copy_test/stdlib_test.rb` にある。**写さない。読んでよい。**
 底本の URL はファイル冒頭のコメントにある。先にそのページを読んでおくと分かりやすい。
 
 ### 手順 3 — 成果リポへ手で打ち込む
@@ -90,7 +92,7 @@ cd ~/lab/ruby-learning/ruby-core
 mkdir -p rb1-18-stdlib-lookup
 ```
 
-エディタで `rb1-18-stdlib-lookup/stdlib_test.rb` を新規作成し、手本を手で打ち込む。
+エディタで `rb1-18-stdlib-lookup/stdlib.rb` を新規作成し、手本を手で打ち込む。
 
 - 1 行目の `# frozen_string_literal: true` は写す（何をする行かは課題 6 で扱う）。その下の底本の URL を書いたコメント群は写さなくてよい。
 - クラス名・メソッド名・変数名・文字列は手本どおりに写す。
@@ -101,7 +103,8 @@ mkdir -p rb1-18-stdlib-lookup
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core
-bundle exec ruby rb1-18-stdlib-lookup/stdlib_test.rb
+bundle exec ruby -Irb1-18-stdlib-lookup \\
+    ../ruby-core-materials/tasks/rb1-18-stdlib-lookup/copy_test/stdlib_test.rb
 ```
 
 最終行に `8 runs, 19 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
@@ -116,7 +119,7 @@ bundle exec ruby rb1-18-stdlib-lookup/stdlib_test.rb
 
 ```sh
 cd ~/lab/ruby-learning/ruby-core-materials
-bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-18-stdlib-lookup/stdlib_test.rb
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-18-stdlib-lookup/stdlib.rb
 ```
 
 `no offenses detected` になるまで直す。
@@ -211,7 +214,7 @@ bin/check rb1-18-stdlib-lookup ../ruby-core
 次がすべて満たされたときに完了とする。判定の正本はこの節である。
 
 1. `bin/check rb1-18-stdlib-lookup ../ruby-core` の全項目が `[合格]`（終了コード 0）。
-   内訳は「写しの実行」「写しのアサーション数」「写しの書式」「`why.md` が雛形と差分あり」「確認課題テスト」の 5 項目。
+   内訳は「写しの照合」「写しの書式」「`why.md` が雛形と差分あり」「確認課題テスト」の 5 項目。
    終了コードは `echo $?` で見る。
 2. 機械判定に載らない工程として、次の 2 つを終えている。
    - `why.md` を、模範解説（`commentary.md`）を開く前に自分の言葉で書いた。
