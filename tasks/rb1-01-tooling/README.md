@@ -155,14 +155,6 @@ cd ruby-core
 git init
 ```
 
-git で名前とメールアドレスを設定したことが一度も無い環境では、この 2 行も実行する
-（設定済みなら不要。`git config user.name` が何も返さないときが未設定）。
-
-```sh
-git config user.name "<自分の名前>"
-git config user.email "<自分のメールアドレス>"
-```
-
 次の 5 つのファイルを作る。中身はここに書いてあるとおりにする。
 
 **`.ruby-version`**（この 1 行だけ）
