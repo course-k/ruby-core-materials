@@ -54,8 +54,8 @@ Kernel#block_given? の項に載っている例をつないだもの。
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ mkdir -p rb1-09-blocks-procs
+cd ~/lab/ruby-learning/ruby-core
+mkdir -p rb1-09-blocks-procs
 ```
 
 エディタで `rb1-09-blocks-procs/blocks_and_procs_test.rb` を新規作成し、手本を手で打ち込む。
@@ -68,8 +68,8 @@ $ mkdir -p rb1-09-blocks-procs
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby rb1-09-blocks-procs/blocks_and_procs_test.rb
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby rb1-09-blocks-procs/blocks_and_procs_test.rb
 ```
 
 最終行に `9 runs, 25 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
@@ -81,8 +81,8 @@ $ bundle exec ruby rb1-09-blocks-procs/blocks_and_procs_test.rb
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-09-blocks-procs/blocks_and_procs_test.rb
+cd ~/lab/ruby-learning/ruby-core-materials
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-09-blocks-procs/blocks_and_procs_test.rb
 ```
 
 `no offenses detected` になるまで直す。
@@ -94,8 +94,8 @@ $ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-09-blocks-procs/blo
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ cp ruby-core-materials/tasks/rb1-09-blocks-procs/why.md ruby-core/rb1-09-blocks-procs/why.md
+cd ~/lab/ruby-learning
+cp ruby-core-materials/tasks/rb1-09-blocks-procs/why.md ruby-core/rb1-09-blocks-procs/why.md
 ```
 
 コピーしたファイルを開き、見出しの下に自分の言葉で書き足す。
@@ -115,9 +115,9 @@ $ cp ruby-core-materials/tasks/rb1-09-blocks-procs/why.md ruby-core/rb1-09-block
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ mkdir -p ruby-core/rb1-09-blocks-procs/exercise/lib
-$ cp ruby-core-materials/tasks/rb1-09-blocks-procs/exercise/lib/pipeline.rb \
+cd ~/lab/ruby-learning
+mkdir -p ruby-core/rb1-09-blocks-procs/exercise/lib
+cp ruby-core-materials/tasks/rb1-09-blocks-procs/exercise/lib/pipeline.rb \
      ruby-core/rb1-09-blocks-procs/exercise/lib/pipeline.rb
 ```
 
@@ -139,8 +139,8 @@ $ cp ruby-core-materials/tasks/rb1-09-blocks-procs/exercise/lib/pipeline.rb \
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby -Irb1-09-blocks-procs/exercise/lib \
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby -Irb1-09-blocks-procs/exercise/lib \
     ../ruby-core-materials/tasks/rb1-09-blocks-procs/exercise/test/pipeline_test.rb
 ```
 
@@ -157,8 +157,8 @@ $ bundle exec ruby -Irb1-09-blocks-procs/exercise/lib \
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ mkdir -p rb1-09-blocks-procs/predict
+cd ~/lab/ruby-learning/ruby-core
+mkdir -p rb1-09-blocks-procs/predict
 ```
 
 書き方: 出力される行をそのままの順序で並べたテキストファイルにする。
@@ -174,8 +174,8 @@ $ mkdir -p rb1-09-blocks-procs/predict
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bin/check rb1-09-blocks-procs ../ruby-core
+cd ~/lab/ruby-learning/ruby-core-materials
+bin/check rb1-09-blocks-procs ../ruby-core
 ```
 
 全項目が `[合格]` になるまで直す。
@@ -197,9 +197,9 @@ $ bin/check rb1-09-blocks-procs ../ruby-core
 状態（`完了`）・日付・一言メモを書く。書いたらコミットする。
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ git add .
-$ git commit -m "rb1-09: ブロックと Proc の手本を写し、Pipeline を実装し、出力を予測した"
+cd ~/lab/ruby-learning/ruby-core
+git add .
+git commit -m "rb1-09: ブロックと Proc の手本を写し、Pipeline を実装し、出力を予測した"
 ```
 
 ## 次の課題

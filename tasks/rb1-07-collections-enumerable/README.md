@@ -53,8 +53,8 @@ Enumerable の各メソッドの項に載っている例をつないだもの。
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ mkdir -p rb1-07-collections-enumerable
+cd ~/lab/ruby-learning/ruby-core
+mkdir -p rb1-07-collections-enumerable
 ```
 
 エディタで `rb1-07-collections-enumerable/collections_and_enumerable_test.rb` を新規作成し、手本を手で打ち込む。
@@ -67,8 +67,8 @@ $ mkdir -p rb1-07-collections-enumerable
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby rb1-07-collections-enumerable/collections_and_enumerable_test.rb
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby rb1-07-collections-enumerable/collections_and_enumerable_test.rb
 ```
 
 最終行に `13 runs, 23 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
@@ -80,8 +80,8 @@ $ bundle exec ruby rb1-07-collections-enumerable/collections_and_enumerable_test
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-07-collections-enumerable/collections_and_enumerable_test.rb
+cd ~/lab/ruby-learning/ruby-core-materials
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-07-collections-enumerable/collections_and_enumerable_test.rb
 ```
 
 `no offenses detected` になるまで直す。
@@ -93,8 +93,8 @@ $ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-07-collections-enum
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ cp ruby-core-materials/tasks/rb1-07-collections-enumerable/why.md ruby-core/rb1-07-collections-enumerable/why.md
+cd ~/lab/ruby-learning
+cp ruby-core-materials/tasks/rb1-07-collections-enumerable/why.md ruby-core/rb1-07-collections-enumerable/why.md
 ```
 
 コピーしたファイルを開き、見出しの下に自分の言葉で書き足す。
@@ -114,8 +114,8 @@ $ cp ruby-core-materials/tasks/rb1-07-collections-enumerable/why.md ruby-core/rb
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ mkdir -p rb1-07-collections-enumerable/predict
+cd ~/lab/ruby-learning/ruby-core
+mkdir -p rb1-07-collections-enumerable/predict
 ```
 
 書き方: 出力される行をそのままの順序で並べたテキストファイルにする。
@@ -131,8 +131,8 @@ $ mkdir -p rb1-07-collections-enumerable/predict
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bin/check rb1-07-collections-enumerable ../ruby-core
+cd ~/lab/ruby-learning/ruby-core-materials
+bin/check rb1-07-collections-enumerable ../ruby-core
 ```
 
 全項目が `[合格]` になるまで直す。
@@ -154,9 +154,9 @@ $ bin/check rb1-07-collections-enumerable ../ruby-core
 状態（`完了`）・日付・一言メモを書く。書いたらコミットする。
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ git add .
-$ git commit -m "rb1-07: Enumerable の手本を写し、連鎖の出力を予測した"
+cd ~/lab/ruby-learning/ruby-core
+git add .
+git commit -m "rb1-07: Enumerable の手本を写し、連鎖の出力を予測した"
 ```
 
 ## 次の課題

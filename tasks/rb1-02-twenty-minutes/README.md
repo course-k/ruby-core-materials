@@ -58,8 +58,8 @@
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ mkdir -p rb1-02-twenty-minutes
+cd ~/lab/ruby-learning/ruby-core
+mkdir -p rb1-02-twenty-minutes
 ```
 
 エディタで `rb1-02-twenty-minutes/twenty_minutes_test.rb` を新規作成し、手本を手で打ち込む。
@@ -72,8 +72,8 @@ $ mkdir -p rb1-02-twenty-minutes
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby rb1-02-twenty-minutes/twenty_minutes_test.rb
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby rb1-02-twenty-minutes/twenty_minutes_test.rb
 ```
 
 最終行に `5 runs, 15 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
@@ -85,8 +85,8 @@ $ bundle exec ruby rb1-02-twenty-minutes/twenty_minutes_test.rb
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-02-twenty-minutes/twenty_minutes_test.rb
+cd ~/lab/ruby-learning/ruby-core-materials
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-02-twenty-minutes/twenty_minutes_test.rb
 ```
 
 `no offenses detected` になるまで直す。
@@ -98,8 +98,8 @@ $ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-02-twenty-minutes/t
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ cp ruby-core-materials/tasks/rb1-02-twenty-minutes/why.md ruby-core/rb1-02-twenty-minutes/why.md
+cd ~/lab/ruby-learning
+cp ruby-core-materials/tasks/rb1-02-twenty-minutes/why.md ruby-core/rb1-02-twenty-minutes/why.md
 ```
 
 コピーしたファイルを開き、見出しの下に自分の言葉で書き足す。
@@ -119,9 +119,9 @@ $ cp ruby-core-materials/tasks/rb1-02-twenty-minutes/why.md ruby-core/rb1-02-twe
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ mkdir -p ruby-core/rb1-02-twenty-minutes/exercise/lib
-$ cp ruby-core-materials/tasks/rb1-02-twenty-minutes/exercise/lib/greeter.rb \
+cd ~/lab/ruby-learning
+mkdir -p ruby-core/rb1-02-twenty-minutes/exercise/lib
+cp ruby-core-materials/tasks/rb1-02-twenty-minutes/exercise/lib/greeter.rb \
      ruby-core/rb1-02-twenty-minutes/exercise/lib/greeter.rb
 ```
 
@@ -136,8 +136,8 @@ $ cp ruby-core-materials/tasks/rb1-02-twenty-minutes/exercise/lib/greeter.rb \
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby -Irb1-02-twenty-minutes/exercise/lib \
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby -Irb1-02-twenty-minutes/exercise/lib \
     ../ruby-core-materials/tasks/rb1-02-twenty-minutes/exercise/test/greeter_test.rb
 ```
 
@@ -150,8 +150,8 @@ $ bundle exec ruby -Irb1-02-twenty-minutes/exercise/lib \
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bin/check rb1-02-twenty-minutes ../ruby-core
+cd ~/lab/ruby-learning/ruby-core-materials
+bin/check rb1-02-twenty-minutes ../ruby-core
 ```
 
 全項目が `[合格]` になるまで直す。
@@ -173,9 +173,9 @@ $ bin/check rb1-02-twenty-minutes ../ruby-core
 状態（`完了`）・日付・一言メモを書く。書いたらコミットする。
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ git add .
-$ git commit -m "rb1-02: Ruby in Twenty Minutes を写し、Greeter に nil の分岐を足した"
+cd ~/lab/ruby-learning/ruby-core
+git add .
+git commit -m "rb1-02: Ruby in Twenty Minutes を写し、Greeter に nil の分岐を足した"
 ```
 
 ## 次の課題

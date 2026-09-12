@@ -125,11 +125,11 @@ Ruby でも動いてしまうため、テストだけでは検出できない。
 実行する場所: どこでもよい（ホームディレクトリで構わない）。
 
 ```sh
-$ brew install openssl@3 libyaml gmp rust
-$ curl https://mise.run | sh
-$ echo 'eval "$(~/.local/bin/mise activate)"' >> ~/.zshrc
-$ source ~/.zshrc
-$ mise use -g ruby@4.0
+brew install openssl@3 libyaml gmp rust
+curl https://mise.run | sh
+echo 'eval "$(~/.local/bin/mise activate)"' >> ~/.zshrc
+source ~/.zshrc
+mise use -g ruby@4.0
 ```
 
 最後の行が、この学習計画で使う版の指定である。
@@ -139,7 +139,7 @@ $ mise use -g ruby@4.0
 入ったことを確認する。
 
 ```sh
-$ ruby -v
+ruby -v
 ```
 
 `ruby 4.0.6` で始まる行が出れば成功。別の版が出たときは `source ~/.zshrc` をやり直す。
@@ -149,18 +149,18 @@ $ ruby -v
 実行する場所: `~/lab/ruby-learning`（無ければ `mkdir -p ~/lab/ruby-learning` で作る）。
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ mkdir ruby-core
-$ cd ruby-core
-$ git init
+cd ~/lab/ruby-learning
+mkdir ruby-core
+cd ruby-core
+git init
 ```
 
 git で名前とメールアドレスを設定したことが一度も無い環境では、この 2 行も実行する
 （設定済みなら不要。`git config user.name` が何も返さないときが未設定）。
 
 ```sh
-$ git config user.name "<自分の名前>"
-$ git config user.email "<自分のメールアドレス>"
+git config user.name "<自分の名前>"
+git config user.email "<自分のメールアドレス>"
 ```
 
 次の 5 つのファイルを作る。中身はここに書いてあるとおりにする。
@@ -243,14 +243,14 @@ gem "minitest", "6.0.0"
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ bundle config set --local path vendor/bundle
-$ bundle install
+bundle config set --local path vendor/bundle
+bundle install
 ```
 
 `Bundle complete!` と出れば成功。`Gemfile.lock` が生成されているはずなので中を見ておく。
 
 ```sh
-$ cat Gemfile.lock
+cat Gemfile.lock
 ```
 
 ここまでで、`Gemfile`（使う gem の宣言）・`Gemfile.lock`（実際に入った版の記録）・
@@ -268,10 +268,10 @@ JS でいう `package.json` / `package-lock.json` / `.nvmrc` と同じ役割分�
 実行する場所: どこでもよい（ホームディレクトリで構わない）。
 
 ```sh
-$ mkdir -p ~/.config/ruby-learning
-$ cp <受け取った鍵ファイルのパス> ~/.config/ruby-learning/seal.key
-$ chmod 600 ~/.config/ruby-learning/seal.key
-$ ls -l ~/.config/ruby-learning/seal.key
+mkdir -p ~/.config/ruby-learning
+cp <受け取った鍵ファイルのパス> ~/.config/ruby-learning/seal.key
+chmod 600 ~/.config/ruby-learning/seal.key
+ls -l ~/.config/ruby-learning/seal.key
 ```
 
 最後の行で `-rw-------` と表示されれば置けている。
@@ -284,9 +284,9 @@ $ ls -l ~/.config/ruby-learning/seal.key
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bundle config set --local path vendor/bundle
-$ bundle install
+cd ~/lab/ruby-learning/ruby-core-materials
+bundle config set --local path vendor/bundle
+bundle install
 ```
 
 ### 手順 4 — 教材の雛形を成果リポへ置く
@@ -297,10 +297,10 @@ $ bundle install
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ mkdir -p ruby-core/rb1-01-tooling
-$ cp -R ruby-core-materials/tasks/rb1-01-tooling/template ruby-core/rb1-01-tooling/template
-$ ls ruby-core/rb1-01-tooling/template/lib ruby-core/rb1-01-tooling/template/test
+cd ~/lab/ruby-learning
+mkdir -p ruby-core/rb1-01-tooling
+cp -R ruby-core-materials/tasks/rb1-01-tooling/template ruby-core/rb1-01-tooling/template
+ls ruby-core/rb1-01-tooling/template/lib ruby-core/rb1-01-tooling/template/test
 ```
 
 `fizzbuzz.rb` と `fizzbuzz_test.rb` が出れば置けている。中身を読んでおく。
@@ -310,8 +310,8 @@ $ ls ruby-core/rb1-01-tooling/template/lib ruby-core/rb1-01-tooling/template/tes
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby -Irb1-01-tooling/template/lib -Irb1-01-tooling/template/test rb1-01-tooling/template/test/fizzbuzz_test.rb
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby -Irb1-01-tooling/template/lib -Irb1-01-tooling/template/test rb1-01-tooling/template/test/fizzbuzz_test.rb
 ```
 
 `-I` は「このディレクトリからも `require` できるようにする」という指定。
@@ -323,8 +323,8 @@ $ bundle exec ruby -Irb1-01-tooling/template/lib -Irb1-01-tooling/template/test 
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-01-tooling/template
+cd ~/lab/ruby-learning/ruby-core-materials
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-01-tooling/template
 ```
 
 `no offenses detected` と出れば成功。
@@ -334,8 +334,8 @@ $ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-01-tooling/template
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec irb -Irb1-01-tooling/template/lib
+cd ~/lab/ruby-learning/ruby-core
+bundle exec irb -Irb1-01-tooling/template/lib
 ```
 
 irb が起動したら、次の 3 行を順に打つ。
@@ -365,7 +365,7 @@ FizzBuzz.list(5)
 その状態でテストを走らせる。
 
 ```sh
-$ bundle exec ruby -Irb1-01-tooling/template/lib -Irb1-01-tooling/template/test rb1-01-tooling/template/test/fizzbuzz_test.rb
+bundle exec ruby -Irb1-01-tooling/template/lib -Irb1-01-tooling/template/test rb1-01-tooling/template/test/fizzbuzz_test.rb
 ```
 
 `(rdbg)` というプロンプトで止まる。そこで次を順に打つ。
@@ -413,8 +413,8 @@ $ bundle exec ruby -Irb1-01-tooling/template/lib -Irb1-01-tooling/template/test 
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bin/check rb1-01-tooling ../ruby-core
+cd ~/lab/ruby-learning/ruby-core-materials
+bin/check rb1-01-tooling ../ruby-core
 ```
 
 表示された各項目が `[合格]` になっていることを確かめる。
@@ -423,7 +423,7 @@ $ bin/check rb1-01-tooling ../ruby-core
 終了コードでも確かめられる。
 
 ```sh
-$ echo $?
+echo $?
 ```
 
 `0` なら合格、`1` なら失敗が残っている。
@@ -436,9 +436,9 @@ $ echo $?
 そのうえでコミットする。
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ git add .
-$ git commit -m "rb1-01: 道具を 1 周し、FizzBuzz の雛形を動かした"
+cd ~/lab/ruby-learning/ruby-core
+git add .
+git commit -m "rb1-01: 道具を 1 周し、FizzBuzz の雛形を動かした"
 ```
 
 ## 完了の判定

@@ -54,8 +54,8 @@ Exception Handling の構文の項に載っている例をつないだもの。
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ mkdir -p rb1-11-exceptions
+cd ~/lab/ruby-learning/ruby-core
+mkdir -p rb1-11-exceptions
 ```
 
 エディタで `rb1-11-exceptions/exceptions_test.rb` を新規作成し、手本を手で打ち込む。
@@ -68,8 +68,8 @@ $ mkdir -p rb1-11-exceptions
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby rb1-11-exceptions/exceptions_test.rb
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby rb1-11-exceptions/exceptions_test.rb
 ```
 
 最終行に `8 runs, 19 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
@@ -81,8 +81,8 @@ $ bundle exec ruby rb1-11-exceptions/exceptions_test.rb
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-11-exceptions/exceptions_test.rb
+cd ~/lab/ruby-learning/ruby-core-materials
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-11-exceptions/exceptions_test.rb
 ```
 
 `no offenses detected` になるまで直す。
@@ -94,8 +94,8 @@ $ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-11-exceptions/excep
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ cp ruby-core-materials/tasks/rb1-11-exceptions/why.md ruby-core/rb1-11-exceptions/why.md
+cd ~/lab/ruby-learning
+cp ruby-core-materials/tasks/rb1-11-exceptions/why.md ruby-core/rb1-11-exceptions/why.md
 ```
 
 コピーしたファイルを開き、見出しの下に自分の言葉で書き足す。
@@ -115,9 +115,9 @@ $ cp ruby-core-materials/tasks/rb1-11-exceptions/why.md ruby-core/rb1-11-excepti
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ mkdir -p ruby-core/rb1-11-exceptions/exercise/lib
-$ cp ruby-core-materials/tasks/rb1-11-exceptions/exercise/lib/inventory.rb \
+cd ~/lab/ruby-learning
+mkdir -p ruby-core/rb1-11-exceptions/exercise/lib
+cp ruby-core-materials/tasks/rb1-11-exceptions/exercise/lib/inventory.rb \
      ruby-core/rb1-11-exceptions/exercise/lib/inventory.rb
 ```
 
@@ -141,8 +141,8 @@ $ cp ruby-core-materials/tasks/rb1-11-exceptions/exercise/lib/inventory.rb \
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby -Irb1-11-exceptions/exercise/lib \
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby -Irb1-11-exceptions/exercise/lib \
     ../ruby-core-materials/tasks/rb1-11-exceptions/exercise/test/inventory_test.rb
 ```
 
@@ -155,8 +155,8 @@ $ bundle exec ruby -Irb1-11-exceptions/exercise/lib \
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bin/check rb1-11-exceptions ../ruby-core
+cd ~/lab/ruby-learning/ruby-core-materials
+bin/check rb1-11-exceptions ../ruby-core
 ```
 
 全項目が `[合格]` になるまで直す。
@@ -178,9 +178,9 @@ $ bin/check rb1-11-exceptions ../ruby-core
 状態（`完了`）・日付・一言メモを書く。書いたらコミットする。
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ git add .
-$ git commit -m "rb1-11: 例外の手本を写し、Inventory に自作例外を足した"
+cd ~/lab/ruby-learning/ruby-core
+git add .
+git commit -m "rb1-11: 例外の手本を写し、Inventory に自作例外を足した"
 ```
 
 ## 次の課題

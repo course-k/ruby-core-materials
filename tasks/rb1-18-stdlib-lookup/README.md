@@ -54,8 +54,8 @@
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ gem list csv logger
+cd ~/lab/ruby-learning/ruby-core
+gem list csv logger
 ```
 
 `csv (3.3.5)` と `logger (1.7.0)` が出れば、この教材が前提にしている版と同じ。
@@ -69,8 +69,8 @@ gem "logger", "1.7.0"
 ```
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle install
+cd ~/lab/ruby-learning/ruby-core
+bundle install
 ```
 
 ### 手順 2 — 手本を読む
@@ -86,8 +86,8 @@ $ bundle install
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ mkdir -p rb1-18-stdlib-lookup
+cd ~/lab/ruby-learning/ruby-core
+mkdir -p rb1-18-stdlib-lookup
 ```
 
 エディタで `rb1-18-stdlib-lookup/stdlib_test.rb` を新規作成し、手本を手で打ち込む。
@@ -100,8 +100,8 @@ $ mkdir -p rb1-18-stdlib-lookup
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby rb1-18-stdlib-lookup/stdlib_test.rb
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby rb1-18-stdlib-lookup/stdlib_test.rb
 ```
 
 最終行に `8 runs, 19 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
@@ -115,8 +115,8 @@ $ bundle exec ruby rb1-18-stdlib-lookup/stdlib_test.rb
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-18-stdlib-lookup/stdlib_test.rb
+cd ~/lab/ruby-learning/ruby-core-materials
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-18-stdlib-lookup/stdlib_test.rb
 ```
 
 `no offenses detected` になるまで直す。
@@ -128,8 +128,8 @@ $ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-18-stdlib-lookup/st
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ cp ruby-core-materials/tasks/rb1-18-stdlib-lookup/why.md ruby-core/rb1-18-stdlib-lookup/why.md
+cd ~/lab/ruby-learning
+cp ruby-core-materials/tasks/rb1-18-stdlib-lookup/why.md ruby-core/rb1-18-stdlib-lookup/why.md
 ```
 
 コピーしたファイルを開き、見出しの下に自分の言葉で書き足す。
@@ -161,9 +161,9 @@ $ cp ruby-core-materials/tasks/rb1-18-stdlib-lookup/why.md ruby-core/rb1-18-stdl
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ mkdir -p ruby-core/rb1-18-stdlib-lookup/exercise/lib ruby-core/rb1-18-stdlib-lookup/exercise/test
-$ cp ruby-core-materials/tasks/rb1-18-stdlib-lookup/exercise/lib/report.rb \
+cd ~/lab/ruby-learning
+mkdir -p ruby-core/rb1-18-stdlib-lookup/exercise/lib ruby-core/rb1-18-stdlib-lookup/exercise/test
+cp ruby-core-materials/tasks/rb1-18-stdlib-lookup/exercise/lib/report.rb \
      ruby-core/rb1-18-stdlib-lookup/exercise/lib/report.rb
 ```
 
@@ -174,8 +174,8 @@ $ cp ruby-core-materials/tasks/rb1-18-stdlib-lookup/exercise/lib/report.rb \
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby -Irb1-18-stdlib-lookup/exercise/lib \
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby -Irb1-18-stdlib-lookup/exercise/lib \
     ../ruby-core-materials/tasks/rb1-18-stdlib-lookup/exercise/test/report_test.rb
 ```
 
@@ -188,8 +188,8 @@ $ bundle exec ruby -Irb1-18-stdlib-lookup/exercise/lib \
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bin/check rb1-18-stdlib-lookup ../ruby-core
+cd ~/lab/ruby-learning/ruby-core-materials
+bin/check rb1-18-stdlib-lookup ../ruby-core
 ```
 
 全項目が `[合格]` になるまで直す。
@@ -225,9 +225,9 @@ $ bin/check rb1-18-stdlib-lookup ../ruby-core
 状態（`完了`）・日付・一言メモを書く。`Gemfile` に足した 2 行もここに書いておく（次に環境を作り直すときの手掛かりになる）。書いたらコミットする。
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ git add .
-$ git commit -m "rb1-18: 標準ライブラリの手本を写し、Report を実装した"
+cd ~/lab/ruby-learning/ruby-core
+git add .
+git commit -m "rb1-18: 標準ライブラリの手本を写し、Report を実装した"
 ```
 
 ## 次の課題

@@ -53,8 +53,8 @@ Calling Methods（Default Positional Arguments / Keyword Arguments の各節）�
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ mkdir -p rb1-08-methods-arguments
+cd ~/lab/ruby-learning/ruby-core
+mkdir -p rb1-08-methods-arguments
 ```
 
 エディタで `rb1-08-methods-arguments/methods_and_arguments_test.rb` を新規作成し、手本を手で打ち込む。
@@ -67,8 +67,8 @@ $ mkdir -p rb1-08-methods-arguments
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby rb1-08-methods-arguments/methods_and_arguments_test.rb
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby rb1-08-methods-arguments/methods_and_arguments_test.rb
 ```
 
 最終行に `7 runs, 22 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
@@ -80,8 +80,8 @@ $ bundle exec ruby rb1-08-methods-arguments/methods_and_arguments_test.rb
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-08-methods-arguments/methods_and_arguments_test.rb
+cd ~/lab/ruby-learning/ruby-core-materials
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-08-methods-arguments/methods_and_arguments_test.rb
 ```
 
 `no offenses detected` になるまで直す。
@@ -93,8 +93,8 @@ $ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-08-methods-argument
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ cp ruby-core-materials/tasks/rb1-08-methods-arguments/why.md ruby-core/rb1-08-methods-arguments/why.md
+cd ~/lab/ruby-learning
+cp ruby-core-materials/tasks/rb1-08-methods-arguments/why.md ruby-core/rb1-08-methods-arguments/why.md
 ```
 
 コピーしたファイルを開き、見出しの下に自分の言葉で書き足す。
@@ -114,9 +114,9 @@ $ cp ruby-core-materials/tasks/rb1-08-methods-arguments/why.md ruby-core/rb1-08-
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ mkdir -p ruby-core/rb1-08-methods-arguments/exercise/lib
-$ cp ruby-core-materials/tasks/rb1-08-methods-arguments/exercise/lib/formatter.rb \
+cd ~/lab/ruby-learning
+mkdir -p ruby-core/rb1-08-methods-arguments/exercise/lib
+cp ruby-core-materials/tasks/rb1-08-methods-arguments/exercise/lib/formatter.rb \
      ruby-core/rb1-08-methods-arguments/exercise/lib/formatter.rb
 ```
 
@@ -138,8 +138,8 @@ $ cp ruby-core-materials/tasks/rb1-08-methods-arguments/exercise/lib/formatter.r
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby -Irb1-08-methods-arguments/exercise/lib \
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby -Irb1-08-methods-arguments/exercise/lib \
     ../ruby-core-materials/tasks/rb1-08-methods-arguments/exercise/test/formatter_test.rb
 ```
 
@@ -152,8 +152,8 @@ $ bundle exec ruby -Irb1-08-methods-arguments/exercise/lib \
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bin/check rb1-08-methods-arguments ../ruby-core
+cd ~/lab/ruby-learning/ruby-core-materials
+bin/check rb1-08-methods-arguments ../ruby-core
 ```
 
 全項目が `[合格]` になるまで直す。
@@ -175,9 +175,9 @@ $ bin/check rb1-08-methods-arguments ../ruby-core
 状態（`完了`）・日付・一言メモを書く。書いたらコミットする。
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ git add .
-$ git commit -m "rb1-08: 引数の形の手本を写し、Formatter.line を実装した"
+cd ~/lab/ruby-learning/ruby-core
+git add .
+git commit -m "rb1-08: 引数の形の手本を写し、Formatter.line を実装した"
 ```
 
 ## 次の課題

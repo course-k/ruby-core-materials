@@ -53,8 +53,8 @@
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ mkdir -p rb1-15-pattern-matching
+cd ~/lab/ruby-learning/ruby-core
+mkdir -p rb1-15-pattern-matching
 ```
 
 エディタで `rb1-15-pattern-matching/pattern_matching_test.rb` を新規作成し、手本を手で打ち込む。
@@ -67,8 +67,8 @@ $ mkdir -p rb1-15-pattern-matching
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby rb1-15-pattern-matching/pattern_matching_test.rb
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby rb1-15-pattern-matching/pattern_matching_test.rb
 ```
 
 最終行に `8 runs, 16 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
@@ -82,8 +82,8 @@ $ bundle exec ruby rb1-15-pattern-matching/pattern_matching_test.rb
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-15-pattern-matching/pattern_matching_test.rb
+cd ~/lab/ruby-learning/ruby-core-materials
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-15-pattern-matching/pattern_matching_test.rb
 ```
 
 `no offenses detected` になるまで直す。
@@ -95,8 +95,8 @@ $ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-15-pattern-matching
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ cp ruby-core-materials/tasks/rb1-15-pattern-matching/why.md ruby-core/rb1-15-pattern-matching/why.md
+cd ~/lab/ruby-learning
+cp ruby-core-materials/tasks/rb1-15-pattern-matching/why.md ruby-core/rb1-15-pattern-matching/why.md
 ```
 
 コピーしたファイルを開き、見出しの下に自分の言葉で書き足す。
@@ -117,9 +117,9 @@ $ cp ruby-core-materials/tasks/rb1-15-pattern-matching/why.md ruby-core/rb1-15-p
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ mkdir -p ruby-core/rb1-15-pattern-matching/exercise/lib ruby-core/rb1-15-pattern-matching/exercise/test
-$ cp ruby-core-materials/tasks/rb1-15-pattern-matching/exercise/lib/event_router.rb \
+cd ~/lab/ruby-learning
+mkdir -p ruby-core/rb1-15-pattern-matching/exercise/lib ruby-core/rb1-15-pattern-matching/exercise/test
+cp ruby-core-materials/tasks/rb1-15-pattern-matching/exercise/lib/event_router.rb \
      ruby-core/rb1-15-pattern-matching/exercise/lib/event_router.rb
 ```
 
@@ -130,8 +130,8 @@ $ cp ruby-core-materials/tasks/rb1-15-pattern-matching/exercise/lib/event_router
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby -Irb1-15-pattern-matching/exercise/lib \
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby -Irb1-15-pattern-matching/exercise/lib \
     ../ruby-core-materials/tasks/rb1-15-pattern-matching/exercise/test/event_router_test.rb
 ```
 
@@ -144,8 +144,8 @@ $ bundle exec ruby -Irb1-15-pattern-matching/exercise/lib \
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bin/check rb1-15-pattern-matching ../ruby-core
+cd ~/lab/ruby-learning/ruby-core-materials
+bin/check rb1-15-pattern-matching ../ruby-core
 ```
 
 全項目が `[合格]` になるまで直す。
@@ -168,9 +168,9 @@ $ bin/check rb1-15-pattern-matching ../ruby-core
 状態（`完了`）・日付・一言メモを書く。書いたらコミットする。
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ git add .
-$ git commit -m "rb1-15: pattern matching の手本を写し、EventRouter を実装した"
+cd ~/lab/ruby-learning/ruby-core
+git add .
+git commit -m "rb1-15: pattern matching の手本を写し、EventRouter を実装した"
 ```
 
 ## 次の課題

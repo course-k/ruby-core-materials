@@ -55,8 +55,8 @@
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ mkdir -p rb1-04-values-truth
+cd ~/lab/ruby-learning/ruby-core
+mkdir -p rb1-04-values-truth
 ```
 
 エディタで `rb1-04-values-truth/values_and_truth_test.rb` を新規作成し、手本を手で打ち込む。
@@ -69,8 +69,8 @@ $ mkdir -p rb1-04-values-truth
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby rb1-04-values-truth/values_and_truth_test.rb
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby rb1-04-values-truth/values_and_truth_test.rb
 ```
 
 最終行に `8 runs, 15 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
@@ -82,8 +82,8 @@ $ bundle exec ruby rb1-04-values-truth/values_and_truth_test.rb
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-04-values-truth/values_and_truth_test.rb
+cd ~/lab/ruby-learning/ruby-core-materials
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-04-values-truth/values_and_truth_test.rb
 ```
 
 `no offenses detected` になるまで直す。
@@ -95,8 +95,8 @@ $ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-04-values-truth/val
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ cp ruby-core-materials/tasks/rb1-04-values-truth/why.md ruby-core/rb1-04-values-truth/why.md
+cd ~/lab/ruby-learning
+cp ruby-core-materials/tasks/rb1-04-values-truth/why.md ruby-core/rb1-04-values-truth/why.md
 ```
 
 コピーしたファイルを開き、見出しの下に自分の言葉で書き足す。
@@ -116,9 +116,9 @@ $ cp ruby-core-materials/tasks/rb1-04-values-truth/why.md ruby-core/rb1-04-value
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ mkdir -p ruby-core/rb1-04-values-truth/exercise/lib
-$ cp ruby-core-materials/tasks/rb1-04-values-truth/exercise/lib/settings.rb \
+cd ~/lab/ruby-learning
+mkdir -p ruby-core/rb1-04-values-truth/exercise/lib
+cp ruby-core-materials/tasks/rb1-04-values-truth/exercise/lib/settings.rb \
      ruby-core/rb1-04-values-truth/exercise/lib/settings.rb
 ```
 
@@ -139,8 +139,8 @@ $ cp ruby-core-materials/tasks/rb1-04-values-truth/exercise/lib/settings.rb \
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby -Irb1-04-values-truth/exercise/lib \
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby -Irb1-04-values-truth/exercise/lib \
     ../ruby-core-materials/tasks/rb1-04-values-truth/exercise/test/settings_test.rb
 ```
 
@@ -153,8 +153,8 @@ $ bundle exec ruby -Irb1-04-values-truth/exercise/lib \
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bin/check rb1-04-values-truth ../ruby-core
+cd ~/lab/ruby-learning/ruby-core-materials
+bin/check rb1-04-values-truth ../ruby-core
 ```
 
 全項目が `[合格]` になるまで直す。
@@ -176,9 +176,9 @@ $ bin/check rb1-04-values-truth ../ruby-core
 状態（`完了`）・日付・一言メモを書く。書いたらコミットする。
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ git add .
-$ git commit -m "rb1-04: 値と真偽の手本を写し、Settings.fetch の欠陥を直した"
+cd ~/lab/ruby-learning/ruby-core
+git add .
+git commit -m "rb1-04: 値と真偽の手本を写し、Settings.fetch の欠陥を直した"
 ```
 
 ## 次の課題

@@ -23,7 +23,7 @@
 `bundle exec ruby <ファイル>` に続けて書いた語は、そのままプログラムの `ARGV` に入る。
 
 ```sh
-$ bundle exec ruby some_script.rb report.csv --verbose
+bundle exec ruby some_script.rb report.csv --verbose
 ```
 
 ### 2. 標準入力のリダイレクト `<`
@@ -32,7 +32,7 @@ $ bundle exec ruby some_script.rb report.csv --verbose
 プログラム側は `$stdin.read` で受け取る。
 
 ```sh
-$ bundle exec ruby some_script.rb < input.txt
+bundle exec ruby some_script.rb < input.txt
 ```
 
 この学習計画で要る理由: 課題 12 と課題 21 で「標準入力を受けて標準出力へ出す」小さな道具を作る。
@@ -44,8 +44,8 @@ $ bundle exec ruby some_script.rb < input.txt
 `0` は成功、`0` 以外は失敗を表すのが慣習である。
 
 ```sh
-$ bundle exec ruby some_script.rb
-$ echo $?
+bundle exec ruby some_script.rb
+echo $?
 ```
 
 この学習計画で要る理由: `bin/check` 自身も終了コードで合否を返している（課題 1 の手順 10）。
@@ -58,7 +58,7 @@ $ echo $?
 ファイルへ切り替えるシェルの記法である。同名のファイルがあれば中身は置き換わる。
 
 ```sh
-$ printf 'alpha\nbeta\n' > input.txt
+printf 'alpha\nbeta\n' > input.txt
 ```
 
 この学習計画で要る理由: 標準入力から読むプログラムを手元で試すには、流し込む入力が要る。
@@ -70,7 +70,7 @@ $ printf 'alpha\nbeta\n' > input.txt
 `<` が「ファイルから流し込む」のに対し、`|` は「別のプログラムの出力から流し込む」。
 
 ```sh
-$ printf 'alpha\nbeta\n' | bundle exec ruby some_script.rb
+printf 'alpha\nbeta\n' | bundle exec ruby some_script.rb
 ```
 
 この学習計画で要る理由: 課題 19 で作る実行ファイルの動作確認をこの形で行う。
@@ -113,8 +113,8 @@ Kernel の `puts` / `warn` / `exit` の項に載っている例をつないだ�
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ mkdir -p rb1-05-control-flow-io
+cd ~/lab/ruby-learning/ruby-core
+mkdir -p rb1-05-control-flow-io
 ```
 
 エディタで `rb1-05-control-flow-io/control_flow_and_io_test.rb` を新規作成し、手本を手で打ち込む。
@@ -127,8 +127,8 @@ $ mkdir -p rb1-05-control-flow-io
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby rb1-05-control-flow-io/control_flow_and_io_test.rb
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby rb1-05-control-flow-io/control_flow_and_io_test.rb
 ```
 
 最終行に `11 runs, 14 assertions, 0 failures, 0 errors, 0 skips` が出れば写しは正しい。
@@ -140,8 +140,8 @@ $ bundle exec ruby rb1-05-control-flow-io/control_flow_and_io_test.rb
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-05-control-flow-io/control_flow_and_io_test.rb
+cd ~/lab/ruby-learning/ruby-core-materials
+bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-05-control-flow-io/control_flow_and_io_test.rb
 ```
 
 `no offenses detected` になるまで直す。
@@ -153,8 +153,8 @@ $ bundle exec rubocop --config .rubocop.yml ../ruby-core/rb1-05-control-flow-io/
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ cp ruby-core-materials/tasks/rb1-05-control-flow-io/why.md ruby-core/rb1-05-control-flow-io/why.md
+cd ~/lab/ruby-learning
+cp ruby-core-materials/tasks/rb1-05-control-flow-io/why.md ruby-core/rb1-05-control-flow-io/why.md
 ```
 
 コピーしたファイルを開き、見出しの下に自分の言葉で書き足す。
@@ -189,22 +189,22 @@ exit(0)
 入力にするファイルも作る。
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ printf 'alpha\nbeta\n' > rb1-05-control-flow-io/input.txt
+cd ~/lab/ruby-learning/ruby-core
+printf 'alpha\nbeta\n' > rb1-05-control-flow-io/input.txt
 ```
 
 走らせる。
 
 ```sh
-$ bundle exec ruby rb1-05-control-flow-io/echo_lines.rb row < rb1-05-control-flow-io/input.txt
-$ echo $?
+bundle exec ruby rb1-05-control-flow-io/echo_lines.rb row < rb1-05-control-flow-io/input.txt
+echo $?
 ```
 
 `row 1: alpha` と `row 2: beta` の 2 行が出て、`echo $?` が `0` を返せばよい。
 引数を省いて
 
 ```sh
-$ bundle exec ruby rb1-05-control-flow-io/echo_lines.rb < rb1-05-control-flow-io/input.txt
+bundle exec ruby rb1-05-control-flow-io/echo_lines.rb < rb1-05-control-flow-io/input.txt
 ```
 
 と打つと、`line 1: alpha` のように既定のラベルに変わる。
@@ -220,9 +220,9 @@ $ bundle exec ruby rb1-05-control-flow-io/echo_lines.rb < rb1-05-control-flow-io
 実行する場所: `~/lab/ruby-learning`
 
 ```sh
-$ cd ~/lab/ruby-learning
-$ mkdir -p ruby-core/rb1-05-control-flow-io/exercise/lib
-$ cp ruby-core-materials/tasks/rb1-05-control-flow-io/exercise/lib/line_report.rb \
+cd ~/lab/ruby-learning
+mkdir -p ruby-core/rb1-05-control-flow-io/exercise/lib
+cp ruby-core-materials/tasks/rb1-05-control-flow-io/exercise/lib/line_report.rb \
      ruby-core/rb1-05-control-flow-io/exercise/lib/line_report.rb
 ```
 
@@ -242,8 +242,8 @@ $ cp ruby-core-materials/tasks/rb1-05-control-flow-io/exercise/lib/line_report.r
 実行する場所: `~/lab/ruby-learning/ruby-core`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ bundle exec ruby -Irb1-05-control-flow-io/exercise/lib \
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby -Irb1-05-control-flow-io/exercise/lib \
     ../ruby-core-materials/tasks/rb1-05-control-flow-io/exercise/test/line_report_test.rb
 ```
 
@@ -256,8 +256,8 @@ $ bundle exec ruby -Irb1-05-control-flow-io/exercise/lib \
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core-materials
-$ bin/check rb1-05-control-flow-io ../ruby-core
+cd ~/lab/ruby-learning/ruby-core-materials
+bin/check rb1-05-control-flow-io ../ruby-core
 ```
 
 全項目が `[合格]` になるまで直す。
@@ -280,9 +280,9 @@ $ bin/check rb1-05-control-flow-io ../ruby-core
 状態（`完了`）・日付・一言メモを書く。書いたらコミットする。
 
 ```sh
-$ cd ~/lab/ruby-learning/ruby-core
-$ git add .
-$ git commit -m "rb1-05: 制御構造と入出力の手本を写し、LineReport の欠陥を直した"
+cd ~/lab/ruby-learning/ruby-core
+git add .
+git commit -m "rb1-05: 制御構造と入出力の手本を写し、LineReport の欠陥を直した"
 ```
 
 ## 次の課題
