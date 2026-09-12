@@ -351,10 +351,12 @@ FizzBuzz.list(5)
     return "FizzBuzz" if (number % 15).zero?
 ```
 
-その状態でテストを走らせる。
+その状態で、`-rdebug` を付けてテストを走らせる。`binding.break` はデバッガ（debug gem）が読み込まれて
+いないとただの存在しないメソッドなので、`-rdebug`（起動時に `require "debug"` するオプション）が要る。
+付け忘れると `undefined method 'break' for an instance of Binding` というエラーが 5 つ出る。
 
 ```sh
-bundle exec ruby -Irb1-01-tooling/template/lib -Irb1-01-tooling/template/test rb1-01-tooling/template/test/fizzbuzz_test.rb
+bundle exec ruby -rdebug -Irb1-01-tooling/template/lib -Irb1-01-tooling/template/test rb1-01-tooling/template/test/fizzbuzz_test.rb
 ```
 
 `(rdbg)` というプロンプトで止まる。そこで次を順に打つ。
