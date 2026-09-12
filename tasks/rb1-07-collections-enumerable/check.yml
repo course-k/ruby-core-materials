@@ -30,6 +30,15 @@ judges:
     template: why.md
     submission: why.md
 
+  - id: exercise
+    type: exercise_test
+    name: 確認課題テスト
+    test: exercise/test/feed_digest_test.rb
+    load_paths:
+      - exercise/lib
+    requires:
+      - exercise/lib/feed_digest.rb
+
   - id: predict-01
     type: predict
     name: 出力予測 01

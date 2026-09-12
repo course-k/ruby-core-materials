@@ -31,8 +31,9 @@
 3. 写しを走らせて通す。
 4. 「なぜこう書くか」を自分の言葉で書く。
 5. 模範解説を開いて突き合わせる。
-6. 出力予測を書く。
-7. `bin/check` を通す。
+6. 確認課題を解く。
+7. 出力予測を書く。
+8. `bin/check` を通す。
 
 **写しは手で打ち込む。コピー＆ペーストはしない。** 機械はコピーと打ち込みを区別できないので、
 これは自分で守る約束として運用する。打ち込むこと自体が、書式の癖（行末のセミコロン、
@@ -105,7 +106,54 @@ cp ruby-core-materials/tasks/rb1-07-collections-enumerable/why.md ruby-core/rb1-
 書き終えたら、教材リポの `tasks/rb1-07-collections-enumerable/commentary.md` を開いて読む。
 自分が書いたことと食い違う箇所、思いつかなかった箇所を `why.md` に追記してよい。
 
-### 手順 6 — 出力予測
+### 手順 6 — 確認課題
+
+集めた記事の一覧を正規化・集計する `FeedDigest` を、判定テストが通るように実装する。
+
+まず雛形を成果リポへ置く。
+
+実行する場所: `~/lab/ruby-learning`
+
+```sh
+cd ~/lab/ruby-learning
+mkdir -p ruby-core/rb1-07-collections-enumerable/exercise/lib
+cp ruby-core-materials/tasks/rb1-07-collections-enumerable/exercise/lib/feed_digest.rb \
+     ruby-core/rb1-07-collections-enumerable/exercise/lib/feed_digest.rb
+```
+
+判定テストは教材リポの `tasks/rb1-07-collections-enumerable/exercise/test/feed_digest_test.rb` にある。**読んでよい。**
+
+**作るもの**: 記事のハッシュの配列を受け取る 6 つのメソッド。記事 1 件は
+`{ title:, source:, tag:, words: }` の形で渡される。
+
+- `.normalize(entries)` — title の前後の空白を落とし、tag を小文字にした**新しい**配列を返す。
+- `.from_source(entries, name)` — その source のものだけを、渡された順のまま返す。
+- `.sources(entries)` — 登場する source を重複なく辞書順で返す。
+- `.by_source(entries)` — source をキー、記事の配列を値とするハッシュを返す。
+- `.tag_counts(entries)` — tag をキー、件数を値とするハッシュを返す。
+- `.total_words(entries)` — words の合計。0 件なら 0。
+
+**ここが狙い**: 6 つとも Enumerable の別のメソッドで書ける。どれにどれを使うかを選ぶこと自体が
+この課題である（`map` / `select` / `uniq` / `group_by` / `tally` / `reduce`）。
+渡された配列とハッシュを書き換えてはいけない——`.normalize` が元を壊していないかを判定テストが見る。
+
+この題材は応用（情報収集ツール）の正規化・集計の部品にあたる。
+
+自分でテストを走らせて確かめる。
+
+実行する場所: `~/lab/ruby-learning/ruby-core`
+
+```sh
+cd ~/lab/ruby-learning/ruby-core
+bundle exec ruby -Irb1-07-collections-enumerable/exercise/lib \
+    ../ruby-core-materials/tasks/rb1-07-collections-enumerable/exercise/test/feed_digest_test.rb
+```
+
+判定テストに自分の `assert` を足したくなったら、成果リポ側に自分のテストファイルを作って書く
+（教材リポのファイルは編集しない）。自分で足した `assert` は判定の対象にはならないが、
+書くこと自体がこの学習計画の狙いの一部である。
+
+### 手順 7 — 出力予測
 
 教材リポの `tasks/rb1-07-collections-enumerable/predict/` に `predict/01.rb`・`predict/02.rb` が入っている。
 **実行する前に**、それぞれが標準出力へ何を出すかを読んで予測し、
@@ -126,7 +174,7 @@ mkdir -p rb1-07-collections-enumerable/predict
 予測が外れたときは、`bin/check` が「最初に食い違う行」の行番号だけを返す。
 正解の出力は表示されないので、その行のコードを読み直して考える。
 
-### 手順 7 — `bin/check` を通す
+### 手順 8 — `bin/check` を通す
 
 実行する場所: `~/lab/ruby-learning/ruby-core-materials`
 
@@ -142,7 +190,7 @@ bin/check rb1-07-collections-enumerable ../ruby-core
 次がすべて満たされたときに完了とする。判定の正本はこの節である。
 
 1. `bin/check rb1-07-collections-enumerable ../ruby-core` の全項目が `[合格]`（終了コード 0）。
-   内訳は「写しの実行」「写しのアサーション数」「写しの書式」「`why.md` が雛形と差分あり」「出力予測 01」「出力予測 02」の 6 項目。
+   内訳は「写しの実行」「写しのアサーション数」「写しの書式」「`why.md` が雛形と差分あり」「確認課題テスト」「出力予測 01」「出力予測 02」の 7 項目。
 2. 機械判定に載らない工程として、次の 2 つを終えている。
    - `why.md` を、模範解説（`commentary.md`）を開く前に自分の言葉で書いた。
    - `commentary.md` を読み、自分の説明と食い違った点を `why.md` に書き足した。
