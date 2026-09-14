@@ -1,104 +1,190 @@
 # 模範解説 — rb1-02-twenty-minutes
 
-`why.md` を書き終えてから開く。
+`why.md` の §1〜§3 を書き終えてから開く。読み終えたら §4「突き合わせで変わったこと」を書く。
 
-## 原典との差分（教材がこの手本に加えた編集）
+この解説は、手本を上から順に説明するのではなく、**前の節で分かったことの上に次の節が乗る順序**で
+並べてある。§4 は §3 が分かって初めて意味を持ち、§5 は §2 と §3 の両方を使う。飛ばさずに読む。
 
-底本の「Ruby in Twenty Minutes」は、第 1〜3 部が irb（対話環境）のやりとりの形で書かれていて、
-第 3 部の最後に 1 つのスクリプト（`MegaGreeter`）が載っている。教材は次の編集をした。
-コードの型（式とイディオム）は原典のまま変えていない。
+## 1. この手本は何をするプログラムか
 
-1. **irb のやりとりと実行部分を照合テストへ移した。** 手本には定義だけを残し、原典が irb で評価していた式
-   （`3 + 2` や `Math.sqrt(a + b)`）、`Greeter.new("Pat")` からの呼び出し、`respond_to?` と `name=` の確認は
-   `copy_test/twenty_minutes_test.rb` の `assert_equal` として書いた。手本には呼び出しも表示も無い。
-2. **定義を 1 ファイルに集めた。** 原典は第 1〜3 部で定義と使用が交互に現れる。手本は `hi` / `Greeter` /
-   `Greeter` の再オープン / `MegaGreeter` の定義だけを原典の順に置いた。再オープンの前後で変わる
-   `respond_to?("name")`（原典は `false` → `true`）は、写しを読み込んだ時点で再オープン済みなので、
-   照合テストは `true` 側だけを確かめる。minitest の骨格は手本に無い。
-3. **`def hi` は最終形だけを置いた。** 原典は同じメソッドを 3 段階で組み立てている:
+**何も起こらないプログラムである。** 手本にあるのは定義だけで、定義したものを呼び出す行が 1 つも無い。
+`bundle exec ruby twenty_minutes.rb` を実行して何も表示されなかったのは、失敗ではなくこれが理由。
 
-   ```ruby
-   def hi
-     puts "Hello World!"
-   end
+定義されているのは 4 つ。
 
-   def hi(name)
-     puts "Hello #{name}!"
-   end
+| 定義 | 何を作るか |
+|---|---|
+| `def hi` | メソッドを 1 つ |
+| `class Greeter` | 名前を覚えて挨拶するオブジェクトの型 |
+| `class Greeter`（2 回目） | 同じ型に、あとから機能を足す |
+| `class MegaGreeter` | 1 人でも大勢でも挨拶できる型 |
 
-   def hi(name = "World")
-     puts "Hello #{name.capitalize}!"
-   end
-   ```
+呼び出す側は照合テスト（`copy_test/twenty_minutes_test.rb`）にある。**定義と呼び出しが別ファイルに
+分かれている**のがこの課題の形で、自分が定義したものを他所から呼んで確かめる、という実務の形と同じ。
 
-   同じ名前のメソッドを 1 ファイルに 3 回書くと後の定義が前を上書きするだけなので、
-   手本には 3 つ目だけを置いた。1 つ目・2 つ目は上に引用したとおり。
-4. **`if __FILE__ == $0` の実行部分とシェバンを手本から外した。** 原典のスクリプトは末尾に
-   `if __FILE__ == $0` で囲まれた実行部分を持つ。この書き方（ファイルを直接実行したときだけ動かす）は
-   課題 19 で扱う。実行部分の中身（`mg = MegaGreeter.new` から `mg.names = nil` までの 4 段階）は
-   照合テストの `test_part3_mega_greeter_*` に原典どおりの値で移した。`#!/usr/bin/env ruby` も同じ理由で落とした。
-5. **書式を教材の RuboCop 設定に合わせた。** 手本側に該当箇所は無い。照合テストへ移した式では
-   `3 ** 2` を `3**2` に、`a+b` を `a + b` に直した（`**` の前後に空白を置かず、`+` の前後には置くのが
-   RuboCop の既定）。
+以降、この 4 つを上の順に 1 つずつ開いていく。
 
-## 読み解き
+## 2. メソッドを 1 つ読む — `hi`
 
-### `puts "Hello #{name.capitalize}!"`
+```ruby
+def hi(name = "World")
+  puts "Hello #{name.capitalize}!"
+end
+```
 
-`#{ }` は**文字列の式展開**。二重引用符の文字列の中でだけ働き、`{ }` の中の式を評価して
-結果を文字列に埋める。単一引用符の文字列では働かない（`'#{1 + 1}'` は `"\#{1 + 1}"` のまま）。
+**`def` で始まり `end` で終わる**のがメソッドの定義。
+
+> The code `def hi` starts the definition of the method.
+> Finally, the last line `end` tells Ruby we're done defining the method.
+
+`= "World"` は**引数の既定値**。
+
+> What this is saying is "If the name isn't supplied, use the default name of `"World"`".
+
+`hi` と呼べば `"World"` が、`hi "chris"` と呼べば `"chris"` が入る。呼び出しの括弧は省略できる
+（原典が `hi "chris"` と書いているとおり）。
+
+`#{ }` は**文字列の式展開**。
+
+> That's Ruby's way of inserting something into a string. The bit between the braces is
+> turned into a string (if it isn't one already) and then substituted into the outer string
+> at that point.
+
+二重引用符の文字列の中でだけ働く。単一引用符では働かない（`'#{1 + 1}'` は `"\#{1 + 1}"` のまま）。
 
 `capitalize` は先頭 1 文字を大文字にした**新しい文字列**を返す。`name` 自体は変わらない。
 末尾に `!` が付く `capitalize!` は受け手そのものを書き換える（この対比は課題 6 で扱う）。
 
-`puts` は標準出力へ書き、戻り値は `nil` である。原典の irb ログで
-`puts "Hello World"` の下に `=> nil` と出ているのがそれ。
+`puts` は標準出力へ書き、**戻り値は `nil`**。原典の irb ログで `puts "Hello World"` の下に
+`=> nil` と出ているのがそれ。そしてメソッドの戻り値は、`return` を書かなければ**最後に評価した式の値**
+になる。`hi` の最後の式は `puts …` なので、`hi` の戻り値は `nil` である。
 
-### `def hi(name = "World")`
+**ここまでで分かったこと**: メソッドの作り方、引数の渡り方、文字列への埋め込み方。
+次はこれを「データを持つもの」の中に入れる。
 
-`= "World"` は引数の既定値。`hi` と呼べば `"World"` が、`hi "chris"` と呼べば `"chris"` が入る。
-呼び出しの括弧は省略できる（原典が `hi "chris"` と書いているとおり）。
+## 3. データを持つオブジェクトを作る — `Greeter`
 
-メソッドの戻り値は、`return` を書かなければ**最後に評価した式の値**になる。
-`hi` の最後の式は `puts …` なので、`hi` の戻り値は `nil` である。
+```ruby
+class Greeter
+  def initialize(name = "World")
+    @name = name
+  end
 
-### `class Greeter` / `def initialize` / `@name`
+  def say_hi
+    puts "Hi #{@name}!"
+  end
+end
+```
+
+§2 のメソッドは呼ばれるたびに引数を受け取っていた。ここでは**名前を覚えておく**形にする。
 
 `Greeter.new("Pat")` と書くと、Ruby は新しいオブジェクトを作ってから、そのオブジェクトの
-`initialize` を `"Pat"` を渡して呼ぶ。`@name` は**インスタンス変数**で、
-`@` で始まる名前を持ち、そのオブジェクトの中だけで見える。外から `greeter.@name` とは書けない
-（原典が SyntaxError になる例として見せている）。
+`initialize` を `"Pat"` を渡して呼ぶ。`initialize` の中で `@name = name` としているので、
+渡された名前がそのオブジェクトに残る。
 
-### `attr_accessor :name` とクラスの再オープン
+`@name` が**インスタンス変数**。
 
-手本は `class Greeter` を 2 回書いている。2 回目は新しいクラスを作るのではなく、
-**すでにあるクラスを開き直して**メソッドを足している。これが Ruby の「クラスの再オープン」で、
-標準ライブラリのクラスにさえ後からメソッドを足せる。
+> This is an instance variable, and is available to all the methods of the class.
 
-`attr_accessor :name` は、`name`（読み出し）と `name=`（書き込み）の 2 つのメソッドを
-自動で定義する。`greeter.name = "Betty"` は代入文のように見えるが、実体は
-`name=` というメソッドの呼び出しである。
+だから `say_hi` は引数を 1 つも取らないのに `@name` を使える。§2 の `hi` が毎回 `name` を
+受け取っていたのと、ここが違う。
 
-### `respond_to?` と `instance_methods`
+**`@` の数で別物になる。** `@name` はオブジェクトごとに別の値を持ち、`@@name`（`@` が 2 つ）は
+クラス全体で 1 つを共有する**クラス変数**という別のものになる。手本に `@@` は出てこない。
+
+**ここまでで分かったこと**: オブジェクトが自分のデータを持てること。
+ただし、そのデータは**まだ外から触れない**。次はそこを開ける。
+
+## 4. 外から触れるようにする — `attr_accessor` とクラスの再オープン
+
+§3 で `@name` にデータが入った。では外から `greeter.name` と書いて読めるか。**読めない。**
+
+> Instance variables are hidden away inside the object.
+> Ruby uses the good object-oriented approach of keeping data sort-of hidden away.
+
+`greeter.@name` と書くこともできない（原典が SyntaxError になる例として見せている）。
+**この「読めない」が分かって初めて、次の 1 行が何のためにあるかが立つ。**
+
+```ruby
+class Greeter
+  attr_accessor :name
+end
+```
+
+`attr_accessor :name` が、
+
+> defined two new methods for us, `name` to get the value, and `name=` to set it.
+
+**メソッドを 2 つ定義する。** 設定でも宣言でもなく、`name` と `name=` という普通のメソッドが
+生えるだけ。だから `greeter.name = "Betty"` は代入文のように見えて、実体は `name=` という
+メソッドの呼び出しである。
+
+そして `attr_accessor` 自体も**文法ではなくメソッド呼び出し**で、`class` の中で書けるのは
+そこがクラスを定義している文脈だから。Rails の `has_many` や `validates` も同じ構造で、
+「文法に見えるが誰かが Ruby で定義したメソッド」を追える力は、この学習計画が Ruby 軸の
+到達地点に置いているものの 1 つ（課題 10・13 で改めて扱う）。
+
+**`class Greeter` が 2 回書かれている**のは、新しいクラスを作っているのではない。
+
+> In Ruby, you can reopen a class and modify it. The changes will be present in any new
+> objects you create and even available in existing objects of that class.
+
+**すでにあるクラスを開き直して**メソッドを足している。1 つにまとめて書いても同じように動く。
+原典が 2 つに分けているのは、まさに今読んだ順序——「読めない」と気づいてから「読めるようにする」——
+を見せるため。標準ライブラリのクラスにさえ後からメソッドを足せる（この差は課題 10 で扱う）。
+
+**ここまでで分かったこと**: オブジェクトの内と外の境目と、その開け方。
+次はこれを使って、渡されたものの種類によって振る舞いを変える。
+
+## 5. 型を聞かずに分岐する — `MegaGreeter`
+
+```ruby
+def say_hi
+  if @names.nil?
+    puts "..."
+  elsif @names.respond_to?("each")
+    @names.each do |name|
+      puts "Hello #{name}!"
+    end
+  else
+    puts "Hello #{@names}!"
+  end
+end
+```
+
+`MegaGreeter` は 1 人でも大勢でも挨拶する。渡されるのが文字列か配列か `nil` か分からないのに、
+どう見分けているか。
 
 `greeter.respond_to?("say_hi")` は「このオブジェクトは `say_hi` という呼びかけに応えるか」を
-真偽値で返す。`MegaGreeter#say_hi` はこれを使って、`@names` が「`each` に応えるもの（＝配列のようなもの）」か
-「そうでないもの（＝ただの文字列）」かを見分けている。型の名前で分岐せず、
-**その呼びかけに応えるかどうか**で分岐するのが Ruby の常套手段である。
+真偽値で返す。ここではそれを使って、`@names` が「`each` に応えるもの（＝配列のようなもの）」か
+「そうでないもの（＝ただの文字列）」かを見分けている。
 
-### `if` / `elsif` / `else`
+> If the `@names` object responds to `each`, it is something that you can iterate over,
+> so iterate over it and greet each person in turn.
 
-`@names.nil?` が最初に来ている順序に意味がある。`nil` は `each` にも `join` にも応えないので、
+**型の名前で分岐していない。** 「Array か」ではなく「`each` に応えるか」を聞く。原典はこれを
+**Duck Typing** と呼んでいる。Ruby で繰り返し出てくる考え方で、`say_bye` も同じく
+`respond_to?("join")` で分岐している。
+
+`?` で終わるメソッド名にも意味がある。
+
+> By convention, methods that answer questions end in question marks
+> (e.g. `Array#empty?`, which returns `true` if the receiver is empty).
+
+`nil?` も `respond_to?` もこれ。ただし**規約であって文法ではない**——`?` はメソッド名に使える
+文字にすぎず、処理系が真偽値を強制するわけではない。対になる規約として、`!` で終わるものは
+「危険な」メソッド（`self` や引数を書き換えるもの）を表す。§2 で触れた `capitalize!` がそれ。
+
+**`@names.nil?` が最初に来ている順序に意味がある。** `nil` は `each` にも `join` にも応えないので、
 先に `nil` を弾いておかないと後の分岐で `NoMethodError` になる。
 
-### `@names.each do |name| … end`
+`do |name| … end` が**ブロック**。`each` は配列の要素を 1 つずつ取り出してブロックに渡し、
+`|name|` がブロックの引数になる。ブロックは課題 9 で正面から扱う。
+`@names.join(", ")` は配列の要素を区切り文字でつないだ文字列を返す。
 
-`do |name| … end` が**ブロック**。`each` は配列の要素を 1 つずつ取り出してブロックに渡す。
-`|name|` がブロックの引数。ブロックは課題 9 で正面から扱う。
-
-### `@names.join(", ")`
-
-配列の要素を区切り文字でつないだ文字列を返す。
+**ここまでで分かったこと**: この手本の 4 つの定義すべて。
+`hi`（メソッド）→ `Greeter`（データを持つ）→ `attr_accessor`（外に開く）→
+`MegaGreeter`（応答で分岐する）という順に積み上がっている。
 
 ## JS ではこうだが Ruby では
 
@@ -151,6 +237,7 @@ Ruby 側（一次情報）:
 - https://docs.ruby-lang.org/en/4.0/syntax/methods_rdoc.html
 - https://docs.ruby-lang.org/en/4.0/syntax/literals_rdoc.html
 - https://docs.ruby-lang.org/en/4.0/syntax/modules_and_classes_rdoc.html
+- https://www.ruby-lang.org/en/documentation/ruby-from-other-languages/ （「?」「!」の命名規約）
 
 JS 側（MDN）:
 

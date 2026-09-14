@@ -1,25 +1,8 @@
-# 模範解説（rb1-13-modules-mixins）
+# 模範解説 — rb1-13-modules-mixins
 
 `why.md` を自分の言葉で書き終えてから読む。
 
-## 原典との差分（教材がこの手本に加えた編集）
-
-底本は、公式リファレンスの Modules and Classes（module / 名前空間 / ネスト / include の各節）、
-Comparable の項、Enumerable の項、Object#extend の項。加えた編集は次のとおり。
-
-1. **4 つの節の例を 1 ファイルに連結した。** `Outer::Inner`・`module A` と `include A`・
-   `StringSorter`（Comparable）・`Foo`（Enumerable）・`Mod` と `Klass`（extend）は、
-   それぞれ別のページの例である。識別子・メソッド本体は原文のまま。
-2. **`attr :str` は原文のまま残した。** Comparable の項の例がこの書き方をしている。
-   いまは `attr_reader :str` と書くのが普通だが、原文の型を変えないためそのままにしてある
-   （この差は「手本の各行がしていること」にも書いてある）。
-3. **`# => ` のコメントと `puts` を `assert` に置き換えた。** 原典が
-   `s1 < s2 # => true`、`[s3, s2, s5, s4, s1].sort # => [...]` と結果をコメントで示している箇所を、
-   `assert_operator` / `assert_equal` に直した。分岐も式も変えていない。
-4. **Enumerable の例は `each_entry` で受けた。** 原典の `Foo#each` は `yield 1` / `yield 1, 2` /
-   `yield` の 3 通りを投げる例で、それを受けるのが `each_entry` であることも原文の説明にある。
-
-## 手本の各行がしていること
+## 読み解き
 
 - `module Outer; module Inner; end; end` — `module` は中に書いた定数・クラス・メソッドの名前を
   `Outer::Inner` という形で囲う。公式ドキュメントは「モジュールは名前空間と mixin の 2 つの目的を持つ」と
@@ -52,7 +35,7 @@ Comparable の項、Enumerable の項、Object#extend の項。加えた編集�
   混ざっている。Ruby では引数のある呼び出しの括弧は任意で、`assert_equal` のように
   「文のように読ませたい」呼び出しでは省くのが慣例。判定の書式検査は括弧を見ない。
 
-## JS 対比
+## JS ではこうだが Ruby では
 
 ### ES modules と Ruby の module は別物（名前空間の側）
 
@@ -83,7 +66,7 @@ Ruby の `k.extend(Mod)` は、インスタンス 1 個だけに機能を足す�
 Ruby の `extend` は写しではなく**そのオブジェクトの探索経路（ancestors）にモジュールを挿す**ので、
 あとから `Mod` にメソッドを足せば `k` からも呼べるようになる。
 
-## 底本 URL
+## 底本の URL
 
 - https://docs.ruby-lang.org/en/4.0/syntax/modules_and_classes_rdoc.html
 - https://docs.ruby-lang.org/en/4.0/Comparable.html

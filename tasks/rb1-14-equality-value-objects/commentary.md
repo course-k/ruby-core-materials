@@ -1,21 +1,8 @@
-# 模範解説（rb1-14-equality-value-objects）
+# 模範解説 — rb1-14-equality-value-objects
 
 `why.md` を自分の言葉で書き終えてから読む。
 
-## 原典との差分（教材がこの手本に加えた編集）
-
-底本は、公式リファレンスの Object（`==` / `equal?` / `eql?` / `hash` の各項）、Struct・Data・Set の項。
-加えた編集は次のとおり。
-
-1. **4 つの項の例を 1 ファイルに連結した。** `Measurement`（`==` と `eql?` と `hash` を自分で定義する
-   クラス）は Object の `hash` の項の例、`Customer` は Struct の項の例、`Measure` は Data の項の例。
-   クラス名・メンバ名・本体は原文のままである。
-2. **`# => ` のコメントを `assert` に置き換えた。** 原典が結果をコメントで示している行を
-   `assert_equal` / `refute` に直した。
-3. **`alias eql? ==` と `[self.class, amount, unit].hash` の型は原文のまま。** `eql?` を上書きしたら
-   `hash` も上書きする、という原典の指示をそのまま形にしたものである。
-
-## 手本の各行がしていること
+## 読み解き
 
 - `obj = "a"; other = obj.dup` — `dup` は中身の同じ別のオブジェクトを作る。だから
   `obj == other` は真、`obj.equal?(other)` は偽になる。公式ドキュメントは `equal?` について
@@ -47,7 +34,7 @@
   公式ドキュメントの「Equality of elements is determined according to Object#eql? and
   Object#hash」がここで効く。
 
-## JS 対比
+## JS ではこうだが Ruby では
 
 ### JS にはオブジェクトの「値としての等価性」を定義する手段が無い
 
@@ -81,7 +68,7 @@ JS でこの形に一番近いのは `Object.freeze` した plain object だが�
 アクセサも生えない。Ruby の `Data.define(:amount, :unit)` 1 行が作るのは
 「読み取り専用アクセサ・3 通りのコンストラクタ・`==`・`to_h`・`hash`」までを含んだクラス。
 
-## 底本 URL
+## 底本の URL
 
 - https://docs.ruby-lang.org/en/4.0/Object.html#method-i-3D-3D
 - https://docs.ruby-lang.org/en/4.0/Object.html#method-i-hash
