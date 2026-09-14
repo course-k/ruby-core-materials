@@ -1,0 +1,84 @@
+# rb1-02 の claim 表 — why.md の照合に使う。
+#
+# 作り方の規約:
+#   - claim は一次情報（ruby-lang.org の Quickstart 該当部）に書かれていることだけを立てる。
+#     記憶で書かない（00-policy.md §4.6）。source に URL、quote に原文を持つ。
+#   - required: true はこの課題の why.md 雛形が明示的に問うている事柄。
+#     required: false は手本に現れ、気づきとして書けているとよい事柄。
+#   - js_contrast は JS からの転移で踏みやすい取り違え。誤概念の観点で使う。
+task: rb1-02-twenty-minutes
+
+claims:
+  - id: c1
+    required: true
+    claim: '`name = "World"` は既定値の指定で、呼ぶ側が引数を渡さなければ "World" が使われる'
+    source: https://www.ruby-lang.org/en/documentation/quickstart/2/
+    quote: >-
+      What this is saying is "If the name isn't supplied, use the default name of `"World"`".
+
+  - id: c2
+    required: true
+    claim: '`@name` はインスタンス変数で、そのクラスのすべてのメソッドから使える'
+    source: https://www.ruby-lang.org/en/documentation/quickstart/2/
+    quote: >-
+      This is an instance variable, and is available to all the methods of the class.
+    js_contrast: >-
+      クラス変数（Ruby では `@@name`）と取り違えやすい。`@` 1 個はオブジェクトごとに別の値を持つ。
+
+  - id: c3
+    required: true
+    claim: 'インスタンス変数はオブジェクトの内側に隠されていて、外から `greeter.name` では読めない'
+    source: https://www.ruby-lang.org/en/documentation/quickstart/3/
+    quote: >-
+      Instance variables are hidden away inside the object.
+      Ruby uses the good object-oriented approach of keeping data sort-of hidden away.
+
+  - id: c4
+    required: true
+    claim: '`attr_accessor :name` は `name`（取得）と `name=`（設定）の 2 つのメソッドを定義する'
+    source: https://www.ruby-lang.org/en/documentation/quickstart/3/
+    quote: >-
+      defined two new methods for us, `name` to get the value, and `name=` to set it.
+
+  - id: c5
+    required: true
+    claim: '`respond_to?("each")` は、そのオブジェクトが each というメソッドに応答するかを確かめる。型ではなく応答するメソッドで分岐する（duck typing）'
+    source: https://www.ruby-lang.org/en/documentation/quickstart/4/
+    quote: >-
+      If the `@names` object responds to `each`, it is something that you can iterate over.
+      / Duck Typing
+    js_contrast: >-
+      `hasOwnProperty` は自身が直接持つプロパティしか見ず、プロトタイプチェーン上のものを見ない。
+      `respond_to?` は継承したメソッドにも真を返す。JS で近いのは `typeof obj.each === "function"`。
+
+  - id: c6
+    required: false
+    claim: 'クラスは再オープンできる。同じ `class Greeter` を 2 度書くと後の定義が足され、変更は既存のオブジェクトにも及ぶ'
+    source: https://www.ruby-lang.org/en/documentation/quickstart/3/
+    quote: >-
+      In Ruby, you can reopen a class and modify it. The changes will be present in any new
+      objects you create and even available in existing objects of that class.
+
+  - id: c7
+    required: false
+    claim: '`#{}` は中の式を文字列に変換して、その位置に埋め込む'
+    source: https://www.ruby-lang.org/en/documentation/quickstart/2/
+    quote: >-
+      That's Ruby's way of inserting something into a string. The bit between the braces is
+      turned into a string (if it isn't one already) and then substituted into the outer
+      string at that point.
+
+  - id: c8
+    required: false
+    claim: 'メソッド定義は `def` で始まり `end` で終わる'
+    source: https://www.ruby-lang.org/en/documentation/quickstart/2/
+    quote: >-
+      The code `def hi` starts the definition of the method.
+      / Finally, the last line `end` tells Ruby we're done defining the method.
+
+# 採点しない事柄（claim に立てない。ただし質問されたら答える——先送りしない）
+not_graded:
+  - topic: frozen_string_literal
+    note: 課題 6（strings-symbols）で正式に扱う。質問されたらここで答え、「課題 6 で正式に扱う」を添える。
+  - topic: require / ライブラリの読み込み
+    note: 手本に require は無い（照合テスト側にある）。
