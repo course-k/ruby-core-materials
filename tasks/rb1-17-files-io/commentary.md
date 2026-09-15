@@ -1,34 +1,160 @@
 # 模範解説 — rb1-17-files-io
 
-`why.md` を自分の言葉で書き終えてから読む。
+`why.md` の §1〜§3 を書き終えてから開く。読み終えたら §4「突き合わせで変わったこと」を書く。
 
-## 読み解き
+この解説は **前の節で分かったことの上に次の節が乗る順序**で並べてある。
+§3（1 行ずつ）は §2（一括）の限界から立ち、§4（Pathname）は §2・§3 で使った
+`File` / `Dir` / `FileUtils` の散らばりを見た後でこそ意味が分かる。飛ばさずに読む。
 
-- `Dir.mktmpdir do |dir| ... end` — 一時ディレクトリを作り、ブロックを抜けるときに丸ごと消す。
-  手本が毎回これで囲っているのは、テストが作業ディレクトリを汚さないようにするため。
-  `require "tmpdir"` が要る（`Dir` の本体には入っていない）。
-- `File.write(path, TEXT)` — 開く・書く・閉じるを 1 つにまとめた呼び出し。戻り値は書いたバイト数。
-  公式ドキュメントのファイル例はすべてこの形で作られている。
-- `File.read(path)` — 同じく、開く・全部読む・閉じるを 1 つにした呼び出し。
-- `File.open(path) do |file| ... end` — ブロックを渡すと、**ブロックを抜けるときに必ず閉じる**。
-  手本は最後に `assert_predicate f, :closed?` を置いて、抜けたあと本当に閉じていることを見ている。
-  ブロックを渡さない `File.open` / `File.new` は自分で `close` しなければならない。
-- `file.each_line { |line| ... }` — ストリームから 1 行ずつ読む。ファイル全体をメモリに載せない。
-- `File.foreach(path) { |line| ... }` と `File.readlines(path)` — 前者は 1 行ずつ渡す、
-  後者は全行の配列を返す。手本は両者の結果が同じであることを 1 つの `assert_equal` で示している。
-  改行文字は落とされない（`"First line\n"`）。空行は `"\n"` の 1 要素として現れる。
-- `File.write(path, "bar", mode: "a")` — `mode` は「読み書きモード」を表す文字列で、
-  `"a"` は追記。既定は `"w"`（既存の中身を捨てて書く）。ここが手本で唯一の破壊的な違い。
-- `Pathname.new(dir)` と `p1 + "lib/song.rb"` — `Pathname` は**パス文字列をオブジェクトにしたもの**。
-  `+` で継ぎ足し、`parent` で 1 つ上、`basename` でファイル名部分、`children` で中身の一覧が取れる。
-  公式ドキュメントは「It is essentially a facade for all of these（File・FileTest・Dir・FileUtils）」と
-  書いており、`p2.write` / `p2.read` / `p2.file?` のようにファイル操作もそのまま呼べる。
-  `Pathname` は不変で、破壊的更新のメソッドを持たない。
-- `FileUtils.mkdir_p(p2.parent)` — 途中のディレクトリが無ければまとめて作る。
-  `Dir.mkdir` は親が無いと `Errno::ENOENT` になるので、深い場所を作るときはこちらを使う。
-- `Dir.children(dir)` — `.` と `..` を含まない名前の配列。`Dir.glob("*.{h,rb}", base: dir)` は
-  パターンに合う名前を返し、`base:` で基準ディレクトリを指定できる（返るのは基準からの相対名）。
-  手本が `.sort` を付けているのは、ファイルシステムが返す順序を当てにしないため。
+## 1. この手本は何を見せているか
+
+課題 5 で標準出力・標準エラーという「外への口」を見ました。**ファイルはもう 1 つの外**です。
+
+読み書きの粒度で 3 段に分かれます。
+
+| 段 | 粒度 | 定義 |
+|---|---|---|
+| §2 | **一括** | `write_then_read` / `append` |
+| §3 | **1 行ずつ** | `each_line_with_block` / `collected_lines` / `read_lines` |
+| §4 | パスそのものを扱う | `song_path` / `write_song` / `entries_of` / `sources_in` |
+
+**同じ結果を出す方法が複数あります。** 使い分けの基準は「どれだけメモリに載せるか」と
+「後片付けを誰がするか」の 2 つです。
+
+## 2. 一括で読み書きする
+
+```ruby
+File.write(path, TEXT)
+File.read(path)
+```
+
+> write: Writes the given string to `self`.
+> read: Returns a string with all or a subset of bytes from the given file.
+> — https://docs.ruby-lang.org/en/4.0/IO.html
+
+**開く・読み書きする・閉じるを 1 回にまとめた呼び出し**です。`File.write` の戻り値は書いた
+バイト数。公式ドキュメントのファイル例はすべてこの形で作られています。
+
+既定は上書きですが、`mode:` で変えられます。
+
+> :mode — Stream mode.
+
+```ruby
+File.write(path, text, mode: "a")   # 追記
+```
+
+実測: `"one\ntwo\n"` のファイルに `mode: "a"` で `"three\n"` を書くと
+`"one\ntwo\nthree\n"`。**既定の `"w"` は既存の中身を捨てる**ので、ここが手本で唯一の
+破壊的な違いです。
+
+**一括の限界は明らかです。** 大きなファイルを `File.read` すると全部がメモリに載る。
+次の節がその答えです。
+
+## 3. 1 行ずつ読む — そして「閉じる」を誰が保証するか
+
+3 つの書き方が出てきます。
+
+```ruby
+File.open(path) { |f| f.each_line { |line| ... } }   # each_line_with_block
+File.foreach(path) { |line| ... }                    # collected_lines
+File.readlines(path)                                 # read_lines
+```
+
+> foreach: Reads each line and passes it to the given block.
+> readlines: Reads and returns all lines in an array.
+> — IO.html
+
+実測では**3 つとも同じ内容**になります（`["one\n", "two\n"]`）。改行は落ちません。空行は
+`"\n"` の 1 要素として現れます。
+
+**違うのは途中の持ち方です。** `readlines` は全行をメモリに載せ、`foreach` と `each_line` は
+1 行ずつ渡す。**大きなファイルでは `foreach`。**
+
+そして `File.open` のブロックには、もう 1 つの役割があります。
+
+> Same as `::new`, but when given a block will yield the file to the block,
+> **and close the file upon exiting the block**.
+> — https://docs.ruby-lang.org/en/4.0/File.html
+
+実測で確かめられます。
+
+```ruby
+File.open(path) { |f| f }.closed?   #=> true    ← 抜けた時点で閉じている
+h = File.open(path); h.closed?      #=> false   ← 自分で close が要る
+```
+
+**手本の `each_line_with_block` がブロックから `f` を返しているのは、まさにこれを見せるため**です。
+
+**課題 11 の `ensure` と同じ考え方**——必ず後片付けする、を構文で保証している。Node.js の `fs` には
+この保証が無く、自分で閉じるか読み切るかのどちらかです。
+
+**ここまでで分かったこと**: 読み書きの粒度と、閉じる保証。
+ここまで `File` と `IO` を使ってきました。次は**パスそのもの**の扱い。
+
+## 4. パスをオブジェクトにする — `Pathname`
+
+§2・§3 では、パスはただの文字列でした。文字列のままだと、操作があちこちのモジュールに
+散らばります。
+
+> Pathname represents the name of a file or directory on the filesystem, but not the file itself.
+> **The goal of this class is to manipulate file path information in a neater way than
+> standard Ruby provides.**
+> — https://docs.ruby-lang.org/en/4.0/Pathname.html
+
+公式ドキュメントが並べている比較がそのまま答えです。
+
+```ruby
+# 文字列のまま
+size  = File.size(pn)
+isdir = File.directory?(pn)
+dir   = File.dirname(pn)
+
+# Pathname
+size  = pn.size
+isdir = pn.directory?
+dir   = pn.dirname
+```
+
+**`File`・`FileTest`・`Dir`・`FileUtils` に散らばっていたものが、1 つのオブジェクトの
+メソッドになる。** 手本の `song_path` と `write_song` がその形です。
+
+```ruby
+Pathname.new(dir) + "lib/song.rb"   # + で継ぎ足せる
+path.parent                          # 1 つ上
+path.write("# song\n")              # ファイル操作もそのまま
+```
+
+`Pathname` は不変で、破壊的更新のメソッドを持ちません。
+
+ディレクトリを作るところで、もう 1 つ差が出ます。
+
+> （ディレクトリを作るメソッド群）create directories, **also creating ancestor directories as
+> needed**.
+> — https://docs.ruby-lang.org/en/4.0/FileUtils.html
+
+実測: 親の無いパスに `Dir.mkdir` すると `Errno::ENOENT`。`FileUtils.mkdir_p` は同じパスで成功
+します。**手本の `write_song` が `mkdir_p` → `path.write` の順で書いているのはこのため**です。
+
+中身を見る 2 つも押さえます。
+
+> children: Returns an array of the entry names in the directory, except for `"."` and `".."`.
+> glob: Forms an array _entries_ of the entry names selected by the pattern.
+> — https://docs.ruby-lang.org/en/4.0/Dir.html
+
+```ruby
+Dir.children(dir)                    # ["a.txt", "lib"] — . と .. は含まない
+Dir.glob("*.{h,rb}", base: dir)      # ["x.h", "y.rb"] — base からの相対名
+```
+
+`{h,rb}` は「どちらか」を意味する波括弧のパターン。**手本が `.sort` を付けているのは、
+ファイルシステムが返す順序を当てにしないため**です。
+
+**ここまでで分かったこと**: この手本の全部。一括（§2）→ 1 行ずつと閉じる保証（§3）→
+パスをオブジェクトにする（§4）。
+
+なお手本が全体を `Dir.mktmpdir do |dir| ... end` で囲っているのは、テストが作業ディレクトリを
+汚さないためです（`require "tmpdir"` が要る）。ブロックを抜けるときに丸ごと消える——
+§3 で見た「ブロックが後片付けを保証する」形の、もう 1 つの例です。
 
 ## JS ではこうだが Ruby では
 

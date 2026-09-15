@@ -1,0 +1,106 @@
+# rb1-18 の claim 表 — why.md の照合に使う。作り方の規約は根幹 §3.1。
+task: rb1-18-stdlib-lookup
+
+claims:
+  - id: c1
+    required: true
+    claim: '`JSON.parse` は既定で文字列のキーを返す。`symbolize_names: true` を渡すと Symbol のキーになる'
+    source: https://docs.ruby-lang.org/en/4.0/JSON.html
+    quote: >-
+      Option `symbolize_names` (boolean) specifies whether returned Hash keys should be
+      Symbols; defaults to `false` (use Strings).
+    note: >-
+      実測: JSON.parse('{"a":1}') は {"a" => 1}、symbolize_names: true では {a: 1}。
+      既定が文字列なのは、JSON のキーが任意の文字列でありうるため——
+      Symbol は一度作ると実行中ずっと残る（課題 6 c3）ので、
+      外から来た未知のキーを無条件に Symbol にするのは危うい。
+
+  - id: c2
+    required: true
+    claim: '`ERB#result(binding)` に渡す `binding` は、テンプレート中の式から見える変数の集まり。渡さないと呼び出し元のローカル変数が見えない'
+    source: https://docs.ruby-lang.org/en/4.0/ERB.html
+    quote: >-
+      The binding object provides the bindings for expressions in expression tags.
+      / （引数を省くと）the one returned by method `new_toplevel`. This binding has the
+      bindings defined by Ruby itself, which are those for Ruby's constants and variables.
+    note: >-
+      実測: メソッドの中で result(binding) を使うと引数 magic_word が見えるが、
+      result（引数なし）にすると
+      「NameError — undefined local variable or method 'magic_word' for main」。
+
+  - id: c3
+    required: true
+    claim: '`CSV.parse` は既定で配列の配列を返すが、`headers: true` を付けると `CSV::Table` を返し、行は `CSV::Row` になってキー名で引ける'
+    source: https://github.com/ruby/csv/tree/v3.3.5
+    quote: >-
+      Parsing methods commonly return either of:
+      - An Array of Arrays of Strings: The outer Array is the entire "table".
+        Each inner Array is a row. Each String is a field.
+      - A CSV::Table object. For details, see CSV with Headers.
+    note: >-
+      実測: CSV.parse("a,b\n1,2\n") は [["a","b"],["1","2"]]。
+      headers: true では CSV::Table が返り、first は CSV::Row で first["a"] が "1"。
+      利点は列名で引けること、面倒は戻り値の型が変わるので後段の書き方が変わること。
+
+  - id: c4
+    required: true
+    claim: 'Logger のレベルは「どの重さ以上を出すか」を決める。閾値より軽いものは捨てられ、`info?` のような述語もその判定を返す'
+    source: https://github.com/ruby/logger/tree/v1.7.0
+    quote: >-
+      The log level setting determines whether an entry is actually written to the log,
+      based on the entry's severity.
+      / info?: Returns `true` if the log level allows entries with severity Logger::INFO
+      to be written, `false` otherwise.
+    note: >-
+      実測: level: Logger::WARN のとき logger.info("ignored") は出力されず、
+      logger.warn("kept") だけが残る。logger.info? は false、logger.warn? は true。
+      info? が偽を返すのは「閾値が info より重い」状態。重い処理をしてからログに
+      渡す前に info? で聞けば、捨てられるメッセージを作らずに済む。
+
+  - id: c5
+    required: true
+    claim: 'Ruby に同梱される gem には default gem と bundled gem の別がある。bundled gem は Bundler を使うとき `Gemfile` に書かないと `require` できない'
+    source: https://docs.ruby-lang.org/en/4.0/standard_library_md.html
+    quote: >-
+      Default gems are shipped with Ruby releases and also available as rubygems.
+      Default gems are not uninstallable from the Ruby installation.
+      / Bundled gems ... They can be uninstalled from the Ruby installation.
+      **They need to be declared in a Gemfile when used with bundler.**
+    note: >-
+      実測: Gem::Specification.find_by_name(...).default_gem? は
+      json が true（default gem）、csv・logger・minitest が false（bundled gem）。
+      成果リポの Gemfile に minitest が書いてあるのはこのため。json は書かなくても使える。
+
+  - id: c6
+    required: false
+    claim: '`JSON.generate` は Ruby のオブジェクトから JSON の文字列を作る'
+    source: https://docs.ruby-lang.org/en/4.0/JSON.html
+    quote: >-
+      To generate a Ruby String containing JSON data, use method `JSON.generate(source, opts)`,
+      where `source` is a Ruby object.
+    note: '実測: JSON.generate({a: 1}) は "{\"a\":1}"。'
+
+  - id: c7
+    required: false
+    claim: 'ERB のコメントタグは `<%# text %>` で、出力に残らない。`<% #` と書くと別物になる'
+    source: https://docs.ruby-lang.org/en/4.0/ERB.html
+    quote: >-
+      You can embed a comment in a template using a _comment tag_; its syntax is
+      `<%# text %>`, where _text_ is the text of the comment.
+      Note that the beginning of the tag must be `'<%#'`, not `'<% #'`.
+    note: '実測: "Some stuff;<%# Note %> more stuff." の結果は "Some stuff; more stuff."。'
+
+  - id: c8
+    required: false
+    claim: '`Time#strftime` は書式指定子で時刻を文字列にする'
+    source: https://docs.ruby-lang.org/en/4.0/Time.html
+    quote: >-
+      strftime: Returns a string representation of `self`, formatted according to the given
+      string `format`.
+    note: '実測: Time.new(2024,12,31,23,59,59).strftime("%a %b %e %T %Y") は "Tue Dec 31 23:59:59 2024"。'
+
+not_graded:
+  - topic: 各ライブラリの全 API
+    note: >-
+      この課題の狙いは「公式ドキュメントを引いて使う」練習であり、網羅ではない。
+      手本に出てこないメソッドは、必要になったときに一次情報を引く。

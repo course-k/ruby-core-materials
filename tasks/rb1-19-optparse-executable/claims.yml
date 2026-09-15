@@ -1,0 +1,91 @@
+# rb1-19 の claim 表 — why.md の照合に使う。作り方の規約は根幹 §3.1。
+#
+# 【この課題に固有の事情】
+# why.md の 5 問のうち 3 問（shebang を誰が読むか / chmod +x が要る理由 /
+# __FILE__ == $0）は、答えが **OS 側の振る舞いと $0 の仕様**にある。
+# 根幹 §3.1 が定める claim の底本（版固定 URL か、手本が冒頭で挙げる底本）の
+# 範囲に一次情報が見つからなかった——$0 は docs.ruby-lang.org/en/4.0/ 配下の
+# globals のページが 404 で、Object.html にも記載が無い。
+# 規約どおり claim には立てず、not_graded に置いて質問時に答える。
+# 底本の範囲を広げるかどうかは統治側の判断事項（未決）。
+task: rb1-19-optparse-executable
+
+claims:
+  - id: c1
+    required: true
+    claim: '`OptionParser#parse!` は、解析したオプションを引数の配列から取り除き、残りを返す。`!` はその破壊性を表している'
+    source: https://docs.ruby-lang.org/en/4.0/optparse/tutorial_rdoc.html
+    quote: >-
+      Method `parse!` ... removes from `ARGV` the options and arguments it finds, leaving
+      other non-option arguments for the program to handle on its own.
+      The method returns the possibly-reduced `ARGV` array.
+    note: >-
+      実測: ["-x","--yyy","v","rest1","rest2"] に parse! をかけると
+      戻り値は ["rest1","rest2"] で、渡した配列自身も同じ内容に変わる
+      （戻り値と引数は equal? が true＝同じオブジェクト）。
+      課題 6・8 で見た「! は受け手を書き換える」命名規約の実例。
+
+  - id: c2
+    required: true
+    claim: '`into:` に Hash を渡すと、解析した各オプションが名前と値の組としてそこへ入る'
+    source: https://docs.ruby-lang.org/en/4.0/optparse/tutorial_rdoc.html
+    quote: >-
+      In parsing options, you can add keyword option `into` with a hash-like argument;
+      each parsed option will be added as a name/value pair.
+    note: >-
+      実測: into: options を渡すと options が {xxx: true, yyy: "v"} になる。キーは Symbol。
+      渡さない場合は on にブロックを書いて 1 つずつ受け取ることになるので、
+      into: のほうが書く量が減る。既定値を先に入れておくこともできる。
+
+  - id: c3
+    required: false
+    claim: '`banner` はヘルプの先頭に出る説明行。既定は `Usage: <プログラム名> [options]`'
+    source: https://docs.ruby-lang.org/en/4.0/optparse/tutorial_rdoc.html
+    quote: >-
+      The program name is included in the default banner: `Usage: #{program_name} [options]`;
+      you can change the program name.
+    note: >-
+      実測: banner = "Usage: basic [options]" を設定したパーサの help は
+      その行に続いて各オプションの説明が並ぶ。
+
+  - id: c4
+    required: false
+    claim: '`on` に渡す文字列の書き方で、そのオプションが引数を取るかどうかが決まる'
+    source: https://docs.ruby-lang.org/en/4.0/optparse/tutorial_rdoc.html
+    quote: >-
+      Method `parse!` ... removes from `ARGV` the options and arguments it finds, leaving
+      other non-option arguments for the program to handle on its own.
+    note: >-
+      手本の 3 行が 3 通りを並べている——"-x", "--xxx"（引数なし）、
+      "-yYYY", "--yyy"（必須の引数）、"-z [ZZZ]", "--zzz"（省略可能な引数）。
+      引数の有無は文字列の書き方そのもので表す。quote は parse! の説明しか
+      支えていないので required にはしない。
+
+not_graded:
+  - topic: shebang を誰が読むか
+    note: >-
+      答えは OS（カーネル）側にあり、Ruby の一次情報の範囲外。
+      Ruby から見れば # で始まるただのコメント（comments_rdoc「Comments are ignored
+      by the Ruby interpreter.」）。ruby foo.rb と打つ経路では shebang は使われない。
+      質問されたら答える。
+
+  - topic: chmod +x が要る理由
+    note: >-
+      shebang は「何で動かすか」、実行権限は「動かしてよいか」で、別々の条件。
+      実測: shebang 付きのファイルを chmod -x のまま直接実行すると permission denied、
+      chmod +x した後は動く。これも OS 側の話なので claim に立てない。質問されたら答える。
+
+  - topic: "__FILE__ == $0"
+    note: >-
+      $0 の仕様を書いた版固定 URL のページが見つからなかった（globals の rdoc が 404、
+      Object.html にも記載なし）。実測: ruby main.rb が require_relative "lib" したとき、
+      lib 側では __FILE__ が lib.rb・$0 が main.rb で一致せず、main 側では一致する。
+      「ライブラリとして読み込まれたときは実行しない」の定石。質問されたら答える。
+
+  - topic: exe/ と lib/ の分離、gem の構成
+    note: >-
+      この課題の README が扱うが、gem の標準構成は Ruby 中級で正式に扱う。
+      ここでは「実行のコードと再利用されるコードを分ける」という原則まで。
+
+  - topic: IO.popen による子プロセスの実行
+    note: 判定テスト側で使っている。手本の対象ではない。

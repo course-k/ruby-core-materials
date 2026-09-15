@@ -1,0 +1,92 @@
+# rb1-17 の claim 表 — why.md の照合に使う。作り方の規約は根幹 §3.1。
+task: rb1-17-files-io
+
+claims:
+  - id: c1
+    required: true
+    claim: 'ブロック付きの `File.open` は、ブロックを抜けるときにファイルを閉じる。`File.read` は読んで閉じるまでを 1 回で済ませる'
+    source: https://docs.ruby-lang.org/en/4.0/File.html
+    quote: >-
+      Same as `::new`, but when given a block will yield the file to the block,
+      and close the file upon exiting the block.
+    note: >-
+      実測: File.open(path) { |f| f } が返したオブジェクトの closed? は true。
+      ブロックを付けずに File.open した場合は false のまま（自分で close が要る）。
+      手本の each_line_with_block がブロックから f を返しているのは、
+      「抜けた時点で閉じている」ことを確かめるため。
+    js_contrast: >-
+      Node.js の fs は開いたら自分で閉じるか、fs.promises で読み切るかのどちらか。
+      「ブロックを抜けたら閉じる」という構文上の保証が無い。
+      Ruby のこの形は課題 11 の ensure と同じ考え方（必ず後片付けする）。
+
+  - id: c2
+    required: true
+    claim: '`File.foreach` は 1 行ずつブロックへ渡す。`File.readlines` は全行を配列にして返す'
+    source: https://docs.ruby-lang.org/en/4.0/IO.html
+    quote: >-
+      foreach: Reads each line and passes it to the given block.
+      / readlines: Reads and returns all lines in an array.
+    note: >-
+      実測: どちらも ["one\n", "two\n"] という同じ内容になる。
+      違うのは途中の持ち方で、readlines は全部をメモリに載せ、foreach は 1 行ずつ渡す。
+      大きなファイルでは foreach を選ぶ。改行はどちらも残る。
+
+  - id: c3
+    required: true
+    claim: '`Pathname` はパスを文字列ではなくオブジェクトとして扱う。`File`・`FileTest`・`Dir`・`FileUtils` に散らばった操作を 1 つのオブジェクトのメソッドにまとめる'
+    source: https://docs.ruby-lang.org/en/4.0/Pathname.html
+    quote: >-
+      Pathname represents the name of a file or directory on the filesystem, but not the file
+      itself.
+      / The goal of this class is to manipulate file path information in a neater way than
+      standard Ruby provides.
+    note: >-
+      実測: Pathname.new(dir) + "lib/song.rb" で連結でき、
+      そのオブジェクトに .parent / .write / .read が生えている。
+      文字列で書くと File.join → File.dirname → File.write と別々のモジュールを渡り歩く。
+
+  - id: c4
+    required: true
+    claim: '`FileUtils.mkdir_p` は途中のディレクトリも作る。`Dir.mkdir` は親が無いと失敗する'
+    source: https://docs.ruby-lang.org/en/4.0/FileUtils.html
+    quote: >-
+      （ディレクトリを作るメソッド群の説明）create directories,
+      also creating ancestor directories as needed.
+    note: >-
+      実測: 親の無いパスに Dir.mkdir すると Errno::ENOENT。
+      FileUtils.mkdir_p は同じパスで成功する。手本の write_song が
+      mkdir_p → path.write の順で書いているのはこのため。
+
+  - id: c5
+    required: false
+    claim: '`File.write` に `mode: "a"` を渡すと追記になる'
+    source: https://docs.ruby-lang.org/en/4.0/IO.html
+    quote: >-
+      write: Writes the given string to `self`. / :mode — Stream mode.
+    note: '実測: "one\ntwo\n" のファイルに mode: "a" で "three\n" を書くと "one\ntwo\nthree\n"。'
+
+  - id: c6
+    required: false
+    claim: '`File.read` はファイルの中身を 1 つの文字列で返す'
+    source: https://docs.ruby-lang.org/en/4.0/IO.html
+    quote: >-
+      Returns a string with all or a subset of bytes from the given file.
+
+  - id: c7
+    required: false
+    claim: '`Dir.children` はそのディレクトリの中身の名前を返す。`Dir.glob` はパターンに合うものを返し、`base:` で基準ディレクトリを指定できる'
+    source: https://docs.ruby-lang.org/en/4.0/Dir.html
+    quote: >-
+      children: Returns an array of the entry names in the directory,
+      except for `"."` and `".."`.
+      / glob: Forms an array _entries_ of the entry names selected by the pattern.
+    note: >-
+      実測: Dir.children は [".", ".."] を含まない。
+      Dir.glob("*.{h,rb}", base: dir) は ["x.h", "y.rb"]。
+      {h,rb} は「どちらか」を意味する波括弧のパターン。
+
+not_graded:
+  - topic: 文字エンコーディングとファイルの読み書き
+    note: 課題 6（strings-symbols）で encode / force_encoding を扱った。
+  - topic: 一時ディレクトリ（Dir.mktmpdir）
+    note: 判定テスト側で使っている。手本の対象ではない。
