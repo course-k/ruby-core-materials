@@ -1,41 +1,195 @@
 # 模範解説 — rb1-15-pattern-matching
 
-`why.md` を自分の言葉で書き終えてから読む。
+`why.md` の §1〜§3 を書き終えてから開く。読み終えたら §4「突き合わせで変わったこと」を書く。
 
-## 読み解き
+この解説は **前の節で分かったことの上に次の節が乗る順序**で並べてある。
+§3（配列と Hash の非対称）は §2（束縛とは何か）の上に、§4（`^`）は §2 の「裸の名前は束縛する」
+の帰結として立つ。飛ばさずに読む。
 
-- `case CONFIG / in db: { user: }` — `case ... in` は「構造を確かめる」と「合った部分を
-  ローカル変数へ入れる」を同時にする。公式ドキュメントの言い方は
-  「checking the structure and binding the matched parts to local variables」。
-  `db: { user: }` のように**値を書かないキー**は、そのキーの値を同じ名前の変数へ入れる。
-  `case ... in` に `when` は混ぜられない（公式ドキュメントの注記どおり）。
-- `else` が無く、どの `in` にも合わないと `NoMatchingPatternError` になる。手本の最初のテストは
-  `else` を置いているので例外にならない。
-- `CONFIG => { db: { user: } }` — 「形が分かっているものを取り出すだけ」のときの書き方。
-  合わなければその場で例外になる。手本は `web:` を要求して `NoMatchingPatternKeyError` を確かめている
-  （ハッシュのキーが足りないときは `NoMatchingPatternError` ではなくこの型になる）。
-- `assert((5 in Integer))` — `<expression> in <pattern>` は真偽値を返す形。公式ドキュメントは
-  「the same as `case <expression>; in <pattern>; true; else false; end`」と説明する。
-  **括弧が二重なのは書き癖ではなく必要**で、`assert(5 in Integer)` と書くと構文エラーになる
-  （`in` は引数の並びの中には置けない）。内側の括弧が `5 in Integer` を 1 つの式にまとめている。
-- 値パターン（`Integer` / `0..9` / `String`）は `===` で照合される。`case ... when` と同じ演算子で、
-  だから「クラスかどうか」「範囲に入るか」がそのまま書ける。
-- 配列パターンは**全体**に一致しないと通らない（`[1, 2, 3]` は `[Integer, Integer]` に一致しない）。
-  ハッシュパターンは指定したキーさえあれば通る。全部のキーを縛りたいときは `**nil` を足す。
-  この非対称は公式ドキュメントが明示している。
-- `in ^expectation, *rest` — ピン演算子 `^` が無いと `expectation` は**新しい束縛**になり、
-  1 が入って必ず一致してしまう。公式ドキュメントはこの落とし穴を
-  「local variable just rewritten」として並べている。
-- `in a, b if b == a * 2` — ガード節。束縛した変数を条件に使える。`unless` も書ける。
-  なお `=>` と `in` の単独形にガード節は付けられない。
-- `class Point` の `deconstruct` / `deconstruct_keys` — 配列パターンは `deconstruct` を、
-  ハッシュパターンは `deconstruct_keys` を呼ぶ。手本が `puts` を残しているのはそのため——
-  テストを走らせると `deconstruct called` と `deconstruct_keys called with [:x]` が出て、
-  「どちらのパターンを書いたときにどちらが呼ばれるか」「必要なキーだけが渡される」ことが見える。
-  底本の Pattern Matching の節が「最初から持っている」として挙げているのは
-  `MatchData` / `Time` / `Date` / `DateTime` の 4 つ。`Struct` と `Data` については
-  各クラスのページ（`Struct#deconstruct` / `Data#deconstruct`）に載っている——
-  だから課題 14 の `Data` はそのまま `in` で分解できる。
+## 1. この手本は何を見せているか
+
+課題 4 で `case ... when` をやりました。**`case ... in` はそれとは別物です。**
+
+> (Note that `in` and `when` branches can NOT be mixed in one `case` expression.)
+> — https://docs.ruby-lang.org/en/4.0/syntax/pattern_matching_rdoc.html
+
+混ぜることすらできない。何が違うのか——それがこの課題の主題です。
+
+| 段 | 主題 | 定義 |
+|---|---|---|
+| §2 | 照合と**束縛**を同時にやる | `describe_config` / `user_of` / `integer?` |
+| §3 | 配列と Hash で**余りの扱いが違う** | `three_integers?` / `starts_with_integer?` / `has_integer_a?` / `only_integer_a?` |
+| §4 | 裸の名前は束縛する——だから `^` が要る | `pinned` / `doubled?` |
+| §5 | 自作クラスを分解できるようにする | `Point` |
+
+## 2. `in` は「確かめる」と「取り出す」を同時にやる
+
+`case ... when` は「値が `===` で一致するか」を聞くだけでした。`in` は**構造を確かめて、
+合った部分をローカル変数に入れます**。公式ドキュメントの言い方は「checking the structure and
+binding the matched parts to local variables」。
+
+```ruby
+def describe_config(config)
+  case config
+  in db: { user: }
+    "Connect with user '#{user}'"
+  ...
+end
+```
+
+**`db: { user: }` の `user:` は値を書いていません。** これが「そのキーの値を `user` という
+変数に入れる」という意味です。`when` にはこの働きがありません。
+
+取り出すだけなら `case` すら要りません。
+
+> the `=>` operator is most useful when the expected data structure is known beforehand,
+> to just unpack parts of it
+
+```ruby
+def user_of(config)
+  config => { db: { user: } }
+  user
+end
+```
+
+実測: `CONFIG => { db: { user: } }` の後、`user` は `"admin"`。
+
+真偽が欲しいだけなら `in` を単独で書けます。
+
+> `<expression> in <pattern>` is the same as
+> `case <expression>; in <pattern>; true; else false; end`
+
+実測: `(1 in Integer)` は `true`、`("x" in Integer)` は `false`。
+
+**3 つの形の使い分けは「合わなかったときどうなるか」で決まります。**
+
+| 形 | 合わないとき |
+|---|---|
+| `case ... in`（`else` あり） | `else` へ |
+| `case ... in`（`else` なし） | `NoMatchingPatternError` |
+| `式 => パターン` | **例外**（実測: ハッシュのキー不足は `NoMatchingPatternKeyError`、配列は `NoMatchingPatternError`） |
+| `式 in パターン` | `false` |
+
+`=>` は「一致するはず」と分かっている場所で、`in` は「どちらか分からない」場所で使う。
+
+**書き方の注意**: `assert((5 in Integer))` の括弧が二重なのは書き癖ではなく**必要**です。
+`assert(5 in Integer)` は構文エラーになる（`in` は引数の並びの中に置けない）。内側の括弧が
+`5 in Integer` を 1 つの式にまとめています。
+
+値パターン（`Integer` / `0..9` / `String`）は `===` で照合されます。**課題 4 の `when` と
+同じ演算子**なので、「クラスかどうか」「範囲に入るか」がそのまま書ける。
+
+**ここまでで分かったこと**: 照合と束縛、3 つの形。次は、構造の照合で最初につまずく点。
+
+## 3. 配列は全体、Hash は部分
+
+> An important difference between array and hash pattern behavior is that arrays match
+> **only a _whole_ array** ... while the hash matches **even if there are other keys** besides
+> the specified part.
+> — pattern_matching_rdoc
+
+**この非対称は公式ドキュメントが明示しています。** 実測で並べます。
+
+```ruby
+[1,2,3] in [Integer, Integer, Integer]   #=> true
+[1,2,3] in [Integer, Integer]            #=> false   ← 数が足りない
+[1,2,3] in [Integer, *]                  #=> true    ← * で余りを許す
+
+{a: 1, b: 2} in {a: Integer}             #=> true    ← b があっても一致
+```
+
+配列で余りを許したければ `*` を明示する。**Hash は逆に、余りを許さない書き方のほうが明示です。**
+
+> with `**nil`: this will not match the pattern having keys other than a
+
+```ruby
+{a: 1, b: 2} in {a: Integer, **nil}   #=> false
+{a: 1}       in {a: Integer, **nil}   #=> true
+```
+
+手本の `starts_with_integer?`（`[Integer, *]`）と `only_integer_a?`（`{a: Integer, **nil}`）が、
+それぞれの「明示」の側です。
+
+**ここまでで分かったこと**: 余りの扱い。次は、束縛の便利さが罠になる場所。
+
+## 4. 裸の名前は必ず束縛する — だから `^` が要る
+
+§2 で「パターンの中の裸の名前は束縛する」と言いました。**これは既にある変数でも同じです。**
+
+```ruby
+def pinned(expectation, value)
+  case value
+  in ^expectation, *rest
+    "matched: #{rest}"
+  ...
+end
+```
+
+`^` を外すと、`expectation` は**新しい束縛**になります。渡された値が何であれそこに入るので、
+**常に一致してしまう**。公式ドキュメントはこの落とし穴を「local variable just rewritten」として
+挙げています。
+
+> For this case, the pin operator `^` can be used, to tell Ruby
+> "just use this value as part of the pattern".
+
+実測: `exp = 5` のとき `[5,1,2] in ^exp, *rest` は一致して `rest` が `[1,2]`、
+`[9,1,2]` は一致しない。
+
+**JS の分割代入と向きが逆**なのがここです。JS は `const { a } = obj` で「a に入れる」だけで、
+「a の値と比べる」書き方はありません。Ruby は束縛が既定で、比較のほうに記号が要る。
+
+束縛した変数を条件に使いたいときは**ガード**を足します。
+
+> `if` can be used to attach an additional condition (guard clause) when the pattern matches
+> in case/in expressions.
+
+```ruby
+in a, b if b == a * 2
+```
+
+`unless` も書けます。ただし `=>` と `in` の単独形にガードは付けられません。
+
+**ここまでで分かったこと**: 束縛の既定と、その外し方。最後に、自作クラスへの適用。
+
+## 5. 自作クラスを分解できるようにする
+
+> array, find, and hash patterns besides literal arrays and hashes will try to match any
+> object implementing `deconstruct` (for array/find patterns) or `deconstruct_keys`
+> (for hash patterns)
+> — pattern_matching_rdoc
+
+**どちらのパターンを書いたかで、呼ばれるメソッドが違います。**
+
+```ruby
+class Point
+  def deconstruct
+    puts "deconstruct called"
+    [@x, @y]
+  end
+
+  def deconstruct_keys(keys)
+    puts "deconstruct_keys called with #{keys.inspect}"
+    { x: @x, y: @y }
+  end
+end
+```
+
+**手本が `puts` を残しているのは、それを目に見せるためです。** 実測:
+
+```
+case Point.new(1,2); in px, Integer ...   → "deconstruct called"
+case Point.new(1,2); in {x:} ...          → "deconstruct_keys called with [:x]"
+```
+
+`deconstruct_keys` には**パターンが要求したキーの一覧**が渡されます（`[:x]`）。値の計算が
+重いときに、要求されたキーだけを作るために使えます。
+
+標準で最初から持っているのは `MatchData` / `Time` / `Date` / `DateTime` の 4 つ。
+`Struct` と `Data` も各クラスのページに `deconstruct` が載っています——**だから課題 14 の
+`Data` はそのまま `in` で分解できます。**
+
+**ここまでで分かったこと**: この手本の全部。照合と束縛（§2）→ 配列と Hash の非対称（§3）→
+`^` が要る理由（§4）→ 自作クラスへの適用（§5）。
 
 ## JS ではこうだが Ruby では
 

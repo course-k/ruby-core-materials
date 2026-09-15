@@ -1,0 +1,98 @@
+# rb1-15 の claim 表 — why.md の照合に使う。作り方の規約は根幹 §3.1。
+task: rb1-15-pattern-matching
+
+claims:
+  - id: c1
+    required: true
+    claim: '`case ... when` は `===` で照合する。`case ... in` は構造を分解して照合し、一致した部分を変数に束縛する。両者は 1 つの case に混ぜられない'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/pattern_matching_rdoc.html
+    quote: >-
+      (Note that `in` and `when` branches can NOT be mixed in one `case` expression.)
+    note: >-
+      課題 4 で見た case/when は「値が === で一致するか」を聞くだけで、
+      束縛しない。in は構造の照合と束縛を同時に行う。
+
+  - id: c2
+    required: true
+    claim: '配列パターンは全体が一致しないと成立しない。ハッシュパターンは指定したキー以外があっても一致する（部分一致）'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/pattern_matching_rdoc.html
+    quote: >-
+      An important difference between array and hash pattern behavior is that arrays match
+      only a _whole_ array ... while the hash matches even if there are other keys besides
+      the specified part.
+    note: >-
+      実測: [1,2,3] in [Integer, Integer, Integer] は true だが
+      [1,2,3] in [Integer, Integer] は false。
+      {a: 1, b: 2} in {a: Integer} は true（b があっても一致）。
+      余りを許すには配列側で * を書く（[1,2,3] in [Integer, *] は true）。
+
+  - id: c3
+    required: true
+    claim: '`**nil` を書くと、指定したキー以外を持たないことを要求できる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/pattern_matching_rdoc.html
+    quote: >-
+      with `**nil`: this will not match the pattern having keys other than a
+    note: >-
+      実測: {a: 1, b: 2} in {a: Integer, **nil} は false、
+      {a: 1} in {a: Integer, **nil} は true。
+
+  - id: c4
+    required: true
+    claim: 'パターンの中の裸の名前は「そこにあるものを束縛する」。既にある変数の**値**と比べたいときは `^` を付ける'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/pattern_matching_rdoc.html
+    quote: >-
+      For this case, the pin operator `^` can be used, to tell Ruby
+      "just use this value as part of the pattern".
+    note: >-
+      実測: exp = 5 のとき [5,1,2] in ^exp, *rest は一致して rest が [1,2]、
+      [9,1,2] は一致しない。^ を付けずに書くと exp が 9 に束縛されて常に一致する。
+
+  - id: c5
+    required: true
+    claim: '自作クラスを `in` で分解するには `deconstruct`（配列パターン用）か `deconstruct_keys`（ハッシュパターン用）を用意する'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/pattern_matching_rdoc.html
+    quote: >-
+      array, find, and hash patterns besides literal arrays and hashes will try to match any
+      object implementing `deconstruct` (for array/find patterns) or `deconstruct_keys`
+      (for hash patterns)
+    note: >-
+      実測: 手本の Point を配列パターンに渡すと "deconstruct called" が出て、
+      ハッシュパターンに渡すと "deconstruct_keys called with [:x]" が出る。
+      deconstruct_keys には「パターンが要求したキーの一覧」が渡される。
+
+  - id: c6
+    required: false
+    claim: '`式 in パターン` は真偽値を返す。`case 式; in パターン; true; else false; end` と同じ'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/pattern_matching_rdoc.html
+    quote: >-
+      `<expression> in <pattern>` is the same as
+      `case <expression>; in <pattern>; true; else false; end`
+    note: '実測: (1 in Integer) は true、("x" in Integer) は false。'
+
+  - id: c7
+    required: false
+    claim: '`式 => パターン` は分解して代入する。一致しないと例外になる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/pattern_matching_rdoc.html
+    quote: >-
+      the `=>` operator is most useful when the expected data structure is known beforehand,
+      to just unpack parts of it
+    note: >-
+      実測: CONFIG => { db: { user: } } の後 user は "admin"。
+      一致しないと NoMatchingPatternKeyError（ハッシュ）や
+      NoMatchingPatternError（配列）になる。in が真偽を返すのと対照的で、
+      => は「一致するはず」と分かっている場所で使う。
+
+  - id: c8
+    required: false
+    claim: 'パターンの後ろに `if` を書いて、束縛した変数を使った条件を足せる（ガード）'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/pattern_matching_rdoc.html
+    quote: >-
+      `if` can be used to attach an additional condition (guard clause) when the pattern
+      matches in case/in expressions.
+    note: '実測: case [2,4]; in a, b if b == a*2 then "matched" は一致する。'
+
+not_graded:
+  - topic: find パターン（[*, x, *]）
+    note: 手本に無い。質問されたら答える。
+  - topic: === と case/when
+    note: 課題 4（values-truth）で扱った。

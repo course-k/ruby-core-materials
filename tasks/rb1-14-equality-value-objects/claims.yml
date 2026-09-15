@@ -1,0 +1,96 @@
+# rb1-14 の claim 表 — why.md の照合に使う。作り方の規約は根幹 §3.1。
+task: rb1-14-equality-value-objects
+
+claims:
+  - id: c1
+    required: true
+    claim: '`equal?` は同一性（同じオブジェクトか）、`==` は値の等しさ、`eql?` は Hash のキーとして同じかを問う'
+    source: https://docs.ruby-lang.org/en/4.0/Object.html
+    quote: >-
+      equal?: should never be overridden by subclasses as it is used to determine object identity.
+      / eql?: Returns `true` if `obj` and `other` refer to the same hash key.
+      This is used by Hash to test members for equality.
+      / For objects of class Object, `eql?` is synonymous with `==`.
+    note: >-
+      実測: 1 == 1.0 は true、1.eql?(1.0) は false、1.equal?(1) は true。
+      a = "x"; b = "x" のとき a == b と a.eql?(b) は true、a.equal?(b) は false。
+      Numeric は == で型変換するが eql? ではしない、という原文の説明がそのまま出る。
+
+  - id: c2
+    required: true
+    claim: '`eql?` を上書きしたら `hash` も上書きしなければならない。`foo.eql?(bar)` なら `foo.hash == bar.hash` でなければならないという約束がある'
+    source: https://docs.ruby-lang.org/en/4.0/Object.html
+    quote: >-
+      hash: Returns the integer hash value for `self`; has the property that
+      if `foo.eql?(bar)` then `foo.hash == bar.hash`.
+      / Hash uses both `hash` and `eql?` to determine whether two objects used as hash keys
+      are to be treated as the same key.
+    note: >-
+      実測: eql? だけ書いて hash を書かないクラスを Hash のキーにすると、
+      同じ内容で引いても nil が返る（h[NoHash.new(1)] = :a の後 h[NoHash.new(1)] は nil）。
+      手本の Measurement は hash を書いているので :ok が返る。
+      hash が先に引かれ、バケツが違えば eql? まで到達しない——これが壊れる理由。
+
+  - id: c3
+    required: true
+    claim: '`Struct` は中身を変えられて列挙もできる。`Data` は書き換えるメソッドを持たない値の入れ物'
+    source: https://docs.ruby-lang.org/en/4.0/Data.html
+    quote: >-
+      Class Data provides a convenient way to define simple classes for value-alike objects.
+      Data provides no member writers, or enumerators: it is meant to be a storage for
+      immutable atomic values.
+      / See also Struct, which is a similar concept, but has more container-alike API,
+      allowing to change contents of the object and enumerate it.
+    note: >-
+      実測: Customer（Struct）は c.name = "Changed" が通る。
+      Measure（Data）は respond_to?(:amount=) が false で、無理に書き換えると FrozenError。
+      選ぶ基準は「後から中身を変えるか」——変えないなら Data。
+
+  - id: c4
+    required: true
+    claim: '`Set` は重複の判定に `==` ではなく `eql?` と `hash` を使う'
+    source: https://docs.ruby-lang.org/en/4.0/Set.html
+    quote: >-
+      Equality of elements is determined according to `Object#eql?` and `Object#hash`.
+    note: >-
+      実測: eql? と hash の両方を持つ Measurement を 2 つ入れた Set の size は 1。
+      eql? だけで hash を持たないクラスでは size が 2 になる。
+      Set が Hash を storage に使っているため、c2 の約束がそのまま効く。
+
+  - id: c5
+    required: false
+    claim: '`Struct` と `Data` は `==` を自前で持っていて、同じ値なら等しくなる'
+    source: https://docs.ruby-lang.org/en/4.0/Data.html
+    quote: >-
+      Class Data provides a convenient way to define simple classes for value-alike objects.
+    note: >-
+      実測: Customer.new("a","b","c") == Customer.new("a","b","c") は true。
+      Measure も同様。自分で == と eql? と hash を書く手間（手本の Measurement）が
+      省けるのが Struct / Data を使う理由。
+
+  - id: c6
+    required: false
+    claim: '`alias eql? ==` と書くと、`==` の定義を `eql?` の名前でも使えるようになる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/modules_and_classes_rdoc.html
+    quote: >-
+      For objects of class Object, `eql?` is synonymous with `==`.
+    note: >-
+      手本の Measurement がこの 1 行で == と eql? を揃えている。
+      揃えないと「== では等しいが Hash のキーとしては別物」という食い違いが起きる。
+
+  - id: c7
+    required: false
+    claim: '`Data` の不変性は浅い。中身が可変オブジェクトなら、その中身は変えられる'
+    source: https://docs.ruby-lang.org/en/4.0/Data.html
+    quote: >-
+      But note that if some of data members is of a mutable class,
+      Data does no additional immutability enforcement.
+
+not_graded:
+  - topic: "<=> と Comparable"
+    note: 課題 13（modules-mixins）で扱った。比較と等価は別の話。
+  - topic: hash 値の計算方法（配列の hash に委ねる定石）
+    note: >-
+      手本は [self.class, amount, unit].hash と書いている。
+      配列の hash が要素の hash から作られるという性質に頼った定石だが、
+      Object の原文はそこまで書いていないので claim には立てない。
