@@ -1,0 +1,94 @@
+# rb1-13 の claim 表 — why.md の照合に使う。作り方の規約は根幹 §3.1。
+task: rb1-13-modules-mixins
+
+claims:
+  - id: c1
+    required: true
+    claim: '`module` は「名前空間」と「他のクラスに能力を足す部品（mixin）」の 2 つの用途を持つ。どちらも「インスタンスを作れない、メソッドと定数の入れ物」という 1 つの仕組みの別の使い方'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/modules_and_classes_rdoc.html
+    quote: >-
+      Modules serve two purposes in Ruby, namespacing and mix-in functionality.
+      A namespace can be used to organize code by package or functionality that separates
+      common names from interference by other packages.
+      Mix-in functionality allows sharing common methods across multiple classes or modules.
+    note: >-
+      実測: 手本の Outer::Inner が名前空間の側、A を include して z が呼べるのが mixin の側。
+      module はインスタンスを作れない（new が無い）のがクラスとの差——ただしこの点は
+      原文に明記が無いので claim には含めない。
+
+  - id: c2
+    required: true
+    claim: '`include` はそのクラスの**インスタンス**にメソッドを足す。`extend` は**その 1 つのオブジェクト**（またはクラス自身）に足す'
+    source: https://docs.ruby-lang.org/en/4.0/Object.html
+    quote: >-
+      extend: Adds to _obj_ the instance methods from each module given as a parameter.
+    note: >-
+      実測: 手本の Klass#hello は "Hello from Klass."。k.extend(Mod) の後、k.hello だけが
+      "Hello from Mod." になり、Klass.new.hello は "Hello from Klass." のまま。
+      k.singleton_class.ancestors は [#<Class:#<Klass:...>>, Mod, Klass] で、
+      Mod が k だけの層に差し込まれている。
+
+  - id: c3
+    required: true
+    claim: '`Comparable` を include すると `<`・`<=`・`==`・`>`・`>=`・`between?`・`clamp` が使えるようになる。自分で書くのは `<=>` 1 つだけ'
+    source: https://docs.ruby-lang.org/en/4.0/Comparable.html
+    quote: >-
+      The class must define the `<=>` operator, which compares the receiver against another
+      object, returning a value less than 0, returning 0, or returning a value greater than 0,
+      depending on whether the receiver is less than, equal to, or greater than the other object.
+    note: >-
+      実測: 手本の StringSorter は <=> しか書いていないのに a < b・a.between?(a,b)・
+      a.clamp(a,b)・[b,a].sort が全部動く。
+
+  - id: c4
+    required: true
+    claim: '`Enumerable` を include したクラスに `each` を書かないと、`map` や `sort_by` を呼んだ時点で失敗する。Enumerable が要求するのは `each` ただ 1 つ'
+    source: https://docs.ruby-lang.org/en/4.0/Enumerable.html
+    quote: >-
+      Implement method `each` which must yield successive elements of the collection.
+    note: >-
+      実測: 手本の Foo は each だけを書いて to_a・map・sort_by が動く
+      （to_a は [1, [1,2], nil]——yield に渡した値がそのまま要素になる）。
+      each を書かずに map を呼ぶと NoMethodError。課題 7 で「Enumerable が要求するのは
+      each ただ 1 つ」と触れた回収。
+
+  - id: c5
+    required: false
+    claim: 'モジュールの中に定義したものは `Outer::Inner` の形で参照する'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/modules_and_classes_rdoc.html
+    quote: >-
+      Modules serve two purposes in Ruby, namespacing and mix-in functionality.
+      / Accessible constants are different depending on the module nesting.
+    note: '実測: 手本の Outer::Inner。:: でたどる。'
+
+  - id: c6
+    required: false
+    claim: 'トップレベルで `include A` と書くと、Object にモジュールが混ぜ込まれ、どこからでもそのメソッドが呼べるようになる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/modules_and_classes_rdoc.html
+    quote: >-
+      Modules serve two purposes in Ruby, namespacing and mix-in functionality.
+    note: >-
+      実測: 手本の include A の後、トップレベルで z が 1 を返す。
+      Klass.ancestors に A が入っている（[Klass, Object, A]）。
+      自分のコードでは避ける形（全クラスに影響するため）だが、
+      「include がどこに何を足すか」を見るには分かりやすい。
+
+  - id: c7
+    required: false
+    claim: '`ancestors` でメソッド探索の順序が読める。include したモジュールはクラスの後ろに入る'
+    source: https://docs.ruby-lang.org/en/4.0/Module.html
+    quote: >-
+      ancestors: Returns a list of modules included/prepended in _mod_ (including _mod_ itself).
+    note: >-
+      実測: Klass.ancestors.take(3) は [Klass, Object, A]。
+      k.extend(Mod) した k の singleton_class.ancestors は
+      [#<Class:#<Klass:...>>, Mod, Klass]。同じ名前のメソッドがあったとき
+      どちらが勝つかはこの並びで決まる。
+
+not_graded:
+  - topic: prepend と Module#ancestors の細部
+    note: 手本に prepend は無い。中級のメタプログラミングで扱う。
+  - topic: "<=> が返す -1 / 0 / 1 と nil（比較不能）"
+    note: >-
+      Comparable の原文は「0 より小さい / 0 / 0 より大きい」としか言っていない。
+      比較できないときに nil を返す約束は実務で必要になったときに。

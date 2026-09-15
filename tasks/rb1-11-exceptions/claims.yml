@@ -1,0 +1,100 @@
+# rb1-11 の claim 表 — why.md の照合に使う。作り方の規約は根幹 §3.1。
+task: rb1-11-exceptions
+
+claims:
+  - id: c1
+    required: true
+    claim: '`rescue => e` の `e` には送出された例外オブジェクトが入る。`e.message` はその例外が持つ説明文字列'
+    source: https://docs.ruby-lang.org/en/4.0/language/exceptions_md.html
+    quote: >-
+      `$!`: contains the rescued exception.
+    note: >-
+      実測: def capture; 1/0; rescue => x; [x.class, x.message]; end は
+      [ZeroDivisionError, "divided by 0"]。手本の first_matching_clause は
+      変数に受けず $! を使っていて、どちらも同じ例外を指す。
+
+  - id: c2
+    required: true
+    claim: '`ensure` は例外が起きても起きなくても、捕まえても捕まえなくても実行される'
+    source: https://docs.ruby-lang.org/en/4.0/language/exceptions_md.html
+    quote: >-
+      Contains code that is to be executed regardless of whether an exception is raised,
+      and regardless of whether a raised exception is handled.
+    note: >-
+      実測: 手本の foo は boom: false でも true でも最後に "Always do this." を出す。
+      rescue 節を持たないメソッドで raise しても ensure は走り、その後で例外が外へ抜ける。
+
+  - id: c3
+    required: true
+    claim: '自作例外は `StandardError` を継承する。`Exception` を直接継承すると、引数なしの `rescue` では捕まらない'
+    source: https://docs.ruby-lang.org/en/4.0/language/exceptions_md.html
+    quote: >-
+      To provide additional or alternate information, you may create custom exception classes.
+      Each should be a subclass of one of the built-in exception classes
+      (commonly StandardError or RuntimeError).
+      / A `rescue` statement may include one or more classes that are to be rescued;
+      if none is given, `StandardError` is assumed.
+    note: >-
+      実測: raise Exception, "x" は rescue => e（＝ rescue StandardError => e）では
+      捕まらない。ZeroDivisionError.ancestors は
+      [ZeroDivisionError, StandardError, Exception, Object, Kernel]。
+      Exception を直接継承すると、プログラムを止めるべき異常（SignalException・
+      NoMemoryError 等）と同じ層に置くことになる。
+
+  - id: c4
+    required: true
+    claim: '`retry` は `begin` 節の**最初から**やり直す。失敗した箇所からではない'
+    source: https://docs.ruby-lang.org/en/4.0/language/exceptions_md.html
+    quote: >-
+      Note that the `retry` re-executes the entire begin clause, not just the part after the
+      point of failure.
+    note: >-
+      手本の retried は retries を begin の外で 0 にしておき、3 回目で raise（再送出）して
+      無限ループを止めている。回数の変数を begin の中に置くとやり直しのたびに 0 に戻り、
+      永久に終わらない。実測: 3 回目で RuntimeError: Boom が外へ出る。
+
+  - id: c5
+    required: false
+    claim: '引数なしの `rescue` が捕まえるのは `StandardError` とその子孫'
+    source: https://docs.ruby-lang.org/en/4.0/language/exceptions_md.html
+    quote: >-
+      A `rescue` statement may include one or more classes that are to be rescued;
+      if none is given, `StandardError` is assumed.
+
+  - id: c6
+    required: false
+    claim: '`else` 節は、例外が起きなかったときだけ実行される'
+    source: https://docs.ruby-lang.org/en/4.0/language/exceptions_md.html
+    quote: >-
+      Contains code that is to be executed if no exception is raised in the begin clause.
+    note: '実測: 手本の foo は boom: false のときだけ "No exception raised." を出す。'
+
+  - id: c7
+    required: false
+    claim: '`rescue` 節の中で引数なしの `raise` を書くと、いま捕まえている例外がそのまま再送出される'
+    source: https://docs.ruby-lang.org/en/4.0/language/exceptions_md.html
+    quote: >-
+      Calls method `raise` with no argument, which raises the rescued exception.
+    note: >-
+      手本の re_raised のコメント「Raised exception will be ZeroDivisionError,
+      not RuntimeError.」がこれ。引数なしの raise は新しい RuntimeError を作らない。
+
+  - id: c8
+    required: false
+    claim: '`rescue` 節を複数書くと、上から順に照合して最初に一致したものだけが実行される'
+    source: https://docs.ruby-lang.org/en/4.0/language/exceptions_md.html
+    quote: >-
+      A `rescue` clause: Starts with a `rescue` statement. Contains code that is to be
+      executed for certain raised exceptions. Ends with the first following `rescue`,
+      `else`, `ensure`, or `end` statement.
+    note: >-
+      手本の first_matching_clause が Errno::ENOTDIR と Errno::ENOENT を並べている。
+      存在しないパスなので ENOENT のほうが当たる。
+
+not_graded:
+  - topic: "raise \"文字列\" が作る例外のクラス"
+    note: >-
+      実測では RuntimeError。手本は raise "Boom!" を使っているが、
+      exceptions_md はこの既定を明示していないので claim には立てない。質問されたら答える。
+  - topic: SystemExit と exit の関係
+    note: 課題 5 で触れた。exit が例外で実装されていることの詳細は実務で必要になったときに。
