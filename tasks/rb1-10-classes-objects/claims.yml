@@ -1,0 +1,100 @@
+# rb1-10 の claim 表 — why.md の照合に使う。作り方の規約は根幹 §3.1。
+task: rb1-10-classes-objects
+
+claims:
+  - id: c1
+    required: true
+    claim: '`initialize` は `new` から呼ばれる。`new` がオブジェクトを作り、そのオブジェクトの `initialize` に引数を渡す'
+    source: https://www.ruby-lang.org/en/documentation/quickstart/2/
+    quote: >-
+      This is an instance variable, and is available to all the methods of the class.
+    note: >-
+      課題 2 で見た Greeter.new("Pat") と initialize の関係。new はクラスに対する
+      メソッド呼び出しで、JS のような new 演算子ではない。
+
+  - id: c2
+    required: true
+    claim: '`attr_accessor :name` は `name`（取得）と `name=`（設定）の 2 つのメソッドを定義する'
+    source: https://docs.ruby-lang.org/en/4.0/Module.html
+    quote: >-
+      Defines a named attribute for this module, where the name is _symbol_.`id2name`,
+      creating an instance variable (`@name`) and a corresponding access method to read it.
+      Also creates a method called `name=` to set the attribute.
+    note: >-
+      実測: class Attrs; attr_accessor :one, :two; end の
+      Attrs.instance_methods(false) は [:one, :one=, :two, :two=]。
+      2 つ書くと 4 つのメソッドが生える。attr_accessor 自体が Module のメソッド呼び出しで、
+      文法ではない（課題 2 で先取りして触れた）。
+
+  - id: c3
+    required: true
+    claim: '`self` は「いまのスコープを定義しているオブジェクト」。クラス定義の直下ではそのクラス自身、インスタンスメソッドの中ではそのインスタンス'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/modules_and_classes_rdoc.html
+    quote: >-
+      `self` refers to the object that defines the current scope.
+      `self` will change when entering a different method or when defining a new module.
+
+  - id: c4
+    required: true
+    claim: 'クラスは再オープンできる。同じ `class Foo` を 2 度書くと後の定義が足される'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/modules_and_classes_rdoc.html
+    quote: >-
+      Just like modules, classes can also be reopened.
+      You can omit its superclass when you reopen a class.
+    note: >-
+      実測: Reopened を 2 度開き、1 度目で initialize、2 度目で attr_accessor :one を
+      定義すると Reopened.new(7).one は 7。課題 2 の Greeter と同じ仕組み。
+
+  - id: c5
+    required: false
+    claim: 'private メソッドは、レシーバを書かずに呼ぶか、`self` をレシーバに書いたときだけ呼べる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/modules_and_classes_rdoc.html
+    quote: >-
+      A private method may only be called from inside the owner class without a receiver,
+      or with a literal `self` as a receiver.
+    note: >-
+      実測: 手本の Owner で without（レシーバ無し）と with_self（self.m）は 1 を返すが、
+      with_other（Owner.new.m）は「NoMethodError: private method 'm' called for an
+      instance of Owner」。同じクラスの別インスタンスでも呼べない。
+    js_contrast: >-
+      JS の #private は同じクラスの別インスタンスからでも触れる（this.#x も other.#x も可）。
+      Ruby の private は「レシーバを書けない」という文法上の制限なので、範囲の切り方が違う。
+
+  - id: c6
+    required: false
+    claim: '`class << self` の中に書いたメソッドは、そのクラス自身のメソッドになる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/modules_and_classes_rdoc.html
+    quote: >-
+      This allows definition of methods and attributes on a class (or module) without
+      needing to write `def self.my_method`.
+    note: '実測: 手本の C.my_method は 2 を返す。def self.my_method と同じ意味。'
+
+  - id: c7
+    required: false
+    claim: '定数はサブクラスにも引き継がれる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/modules_and_classes_rdoc.html
+    quote: >-
+      The same is true for constants. / Accessible constants are different depending on the
+      module nesting.
+    note: '実測: class A; Z = 1; end / class B < A; end で B::Z は 1、B.new.z も 1。'
+
+  - id: c8
+    required: false
+    claim: 'インスタンス変数は代入した時点で作られる。宣言する場所は無い'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/assignment_rdoc.html
+    quote: >-
+      An instance variable must start with a `@` ("at" sign or commercial at).
+      / An uninitialized instance variable has a value of `nil`.
+    note: >-
+      実測: 手本の Foo（空のクラス）の inspect は "#<Foo:0x...>"、
+      Bar（initialize で @bar = 1）は "#<Bar:0x... @bar=1>"。
+      instance_variables が [:@bar] を返す。持っているかどうかが inspect に出る。
+    js_contrast: >-
+      Java のメンバ変数宣言や TS のフィールド宣言に当たるものが無い。
+      代入した時点で存在し、未定義のものを読んでも nil でエラーにならない。
+
+not_graded:
+  - topic: モジュールと mixin（include / extend）
+    note: 課題 13（modules-mixins）で正式に扱う。
+  - topic: 等価性（== / eql? / hash）
+    note: 課題 14（equality-value-objects）で正式に扱う。

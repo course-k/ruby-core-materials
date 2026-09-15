@@ -1,83 +1,140 @@
 # 模範解説 — rb1-10-classes-objects
 
-`why.md` を書き終えてから開く。
+`why.md` の §1〜§3 を書き終えてから開く。読み終えたら §4「突き合わせで変わったこと」を書く。
 
-## 読み解き
+この解説は **前の節で分かったことの上に次の節が乗る順序**で並べてある。
+§4（可視性）は §2（インスタンス変数は外から見えない）の延長で、§5・§6 は §3（`self` が何を指すか）
+が分かって初めて立つ。飛ばさずに読む。
 
-### クラスの定義とインスタンスの生成
+## 1. この手本は何を見せているか
+
+課題 2 で `Greeter` と `attr_accessor` と「クラスの再オープン」を通り過ぎました。
+**この手本はその全部を正面から扱い直します。**
+
+手本の 8 つのクラスは、それぞれ 1 つの問いに答えるために置かれています。
+
+| クラス | 答える問い |
+|---|---|
+| `Foo` / `Bar` | オブジェクトは何を持っているか |
+| `A` / `B` | 継承で何が引き継がれるか |
+| `Attrs` | `attr_accessor` は何を作るか |
+| `Owner` | **`private` は何を禁じているか** |
+| `Reopened` | 再オープンで何が起きるか |
+| `C` | クラス自身のメソッドはどう書くか |
+
+**`Owner` が山場**です。4 つのメソッドの差が 1 つのことを示しています。
+
+## 2. オブジェクトが持つもの — インスタンス変数
+
+手本は空のクラスと、変数を 1 つ持つクラスを並べています。
 
 ```ruby
-class Reopened
-  def initialize(one)
-    @one = one
+class Foo
+end
+
+class Bar
+  def initialize
+    @bar = 1
   end
 end
 ```
 
-`Reopened.new(1)` と書くと、Ruby は空のオブジェクトを作ってから `initialize` を呼ぶ。
-`new` は言語のキーワードではなく `Class` のメソッドである。
+差は `inspect` に出ます（実測）。
 
-`@one` は**インスタンス変数**。宣言は要らず、代入した時点で生まれる。
-代入していないインスタンス変数を読むと `nil` が返る（エラーにはならない）。
+```
+Foo.new.inspect   #=> "#<Foo:0x...>"
+Bar.new.inspect   #=> "#<Bar:0x... @bar=1>"
+Bar.new.instance_variables   #=> [:@bar]
+```
 
-### 継承
+> An instance variable must start with a `@` ("at" sign or commercial at).
+> An uninitialized instance variable has a value of `nil`.
+> — https://docs.ruby-lang.org/en/4.0/syntax/assignment_rdoc.html
 
-`class B < A` と書くと `B` は `A` のメソッドも定数も受け継ぐ。
-`<` を書かなければ `Object` を継承する。
-再オープンのときに違う親クラスを書くと `TypeError: superclass mismatch` になる。
+**宣言する場所がありません。** 代入した時点で作られる。Java のメンバ変数宣言や TS の
+フィールド宣言に当たるものが無く、未定義のものを読んでも `nil` でエラーになりません。
 
-### `attr_accessor` とその仲間
+そして課題 2 で見たとおり、**外からは触れない**。触れるようにするのが `attr_accessor` です。
+
+> Defines a named attribute for this module, where the name is _symbol_.`id2name`,
+> creating an instance variable (`@name`) and a corresponding access method to read it.
+> Also creates a method called `name=` to set the attribute.
+> — https://docs.ruby-lang.org/en/4.0/Module.html
+
+実測で「何が生えるか」が見えます。
 
 ```ruby
 class Attrs
   attr_accessor :one, :two
 end
+Attrs.instance_methods(false)   #=> [:one, :one=, :two, :two=]
 ```
 
-- `attr_reader :x` … `x` を定義する（読み出しだけ）。
-- `attr_writer :x` … `x=` を定義する（書き込みだけ）。
-- `attr_accessor :x` … 両方。
+**2 つ書くと 4 つのメソッド。** 読み取りだけなら `attr_reader`、書き込みだけなら `attr_writer`。
 
-`Attrs.instance_methods(false)` に `:one` と `:one=` の 2 つが現れるのがその証拠である。
-**既定は「読めない・書けない」**（インスタンス変数は外から見えない）ので、
-公開したいものだけを `attr_*` で開ける、という順序になる。
+`to_s` と `inspect` も押さえておきます。`to_s` は人に見せる表現で `puts` と `#{ }` が呼び、
+`inspect` は中身が分かる表現で `p` とデバッガが呼ぶ。原典は「自分のクラスではこのメソッドを
+上書きして、もっと良い表現を返すべきである」と書いています。
 
-`object.one = 2` は代入文に見えるが、実体は `one=` というメソッドの呼び出しである。
+**ここまでで分かったこと**: オブジェクトの中身と、外への開け方。
+次は「中」と「外」を決めている `self`。
 
-### クラス自身が持つメソッド（特異クラス）
+## 3. `self` が指すもの
+
+> `self` refers to the object that defines the current scope.
+> `self` will change when entering a different method or when defining a new module.
+> — https://docs.ruby-lang.org/en/4.0/syntax/modules_and_classes_rdoc.html
+
+**「いまのスコープを定義しているオブジェクト」。** 位置によって変わります。
+
+| 書いた場所 | `self` が指すもの |
+|---|---|
+| クラス定義の直下 | そのクラス自身 |
+| インスタンスメソッドの中 | そのインスタンス |
+
+だから `class Attrs` の直下に書いた `attr_accessor :one` は、**`Attrs` というオブジェクトに対する
+メソッド呼び出し**です（課題 2 で「文法ではなくメソッド」と言ったのはこれ）。
+
+JS の `this` は呼び出し方で変わり、`bind` や アロー関数で束縛し直す必要がありました。
+**Ruby の `self` は書いた場所で決まる**ので、その悩みがありません。
+
+**ここまでで分かったこと**: `self` の決まり方。次は、それを使って可視性が定義されている。
+
+## 4. `private` が禁じているのは「レシーバを書くこと」
+
+手本の `Owner` が山場です。4 つのメソッドを比べます。
 
 ```ruby
-class C
-  class << self
-    def my_method
-      1 + 1
-    end
-  end
+class Owner
+  def without    = m              # レシーバ無し
+  def with_self  = self.m         # self がレシーバ
+  def with_other = Owner.new.m    # 別のインスタンスがレシーバ
+  def m = 1
+  private :m
 end
 ```
 
-`class << self` で開くのは**特異クラス**——そのオブジェクトだけがメソッドを持つための入れ物。
-クラスの中で開けば、そこに定義したメソッドは `C.my_method` の形で呼べる。
-底本は「これで `def self.my_method` と書かずにクラスのメソッドと属性を定義できる」と説明している。
-`def self.名前` も同じものを作る短い書き方で、どちらを使ってもよい。
+実測の結果:
 
-### `to_s` と `inspect`
+| 呼び方 | 結果 |
+|---|---|
+| `without`（レシーバ無し） | `1` |
+| `with_self`（`self.m`） | `1` |
+| `with_other`（`Owner.new.m`） | **`NoMethodError: private method 'm' called`** |
+| 外から `o.m` | **`NoMethodError`** |
 
-- `to_s` … 人に見せる表現。`puts` と文字列の式展開 `#{ }` が呼ぶ。
-- `inspect` … 中身が分かる表現。`p` と配列・ハッシュの表示、デバッガが呼ぶ。
+> A private method may only be called from inside the owner class **without a receiver**,
+> or **with a literal `self` as a receiver**.
+> — modules_and_classes_rdoc
 
-既定の `inspect` は「クラス名・メモリアドレス・インスタンス変数の一覧」を返し、
-既定の `to_s` は「クラス名とオブジェクト id の符号」を返す（インスタンス変数は出ない）。
-原典は「自分のクラスではこのメソッドを上書きして、もっと良い表現を返すべきである」と書いている。
+**`private` が禁じているのは「レシーバを書くこと」です。** 「誰が呼べるか」ではなく
+「どう書けるか」の制限。だから**同じクラスの別インスタンスでも呼べません**（`with_other`）。
 
-### 可視性
+ここは JS と切り方が違います。JS の `#private` は同じクラスの別インスタンスからでも触れます
+（`this.#x` も `other.#x` も可）。「クラス単位」の JS に対して、Ruby は「レシーバの書き方」単位。
 
-3 段階ある。既定は `public`。
+可視性は 3 段階で、既定は `public`。3 つ目の `protected` は、その切り方の違いを埋めるためにあります。
 
-- **`public`** … 誰からでも呼べる。
-- **`private`** … **レシーバを書かずに**呼ぶか、`self.` と書いて呼ぶときだけ呼べる。
-  `other.m` の形（`self` 以外のレシーバ）では `NoMethodError`。
-  手本の `with_other`（`Owner.new.m`）が落ちるのはこれである。
 - **`protected`** … そのクラス（かその子孫）を継承したオブジェクトの中からなら、
   他のオブジェクトをレシーバにして呼べる。`==` のような比較メソッドで、
   相手の内部状態を見たいが外には見せたくないときに使う。原典の例:
@@ -109,11 +166,57 @@ end
   a.n b # raises NoMethodError A is not a subclass of B
   ```
 
-書き方は 2 つある。手本が使っている `private :m`（定義したあとで指定する）と、
-`private` と 1 行書いて**それ以降**を private にする形。
-後者は「スコープの終わりまで効く」ので、あとからメソッドを足すときに位置に注意が要る。
+書き方は 2 つあります。手本が使っている `private :m`（定義したあとで指定する）と、
+`private` と 1 行書いて**それ以降**を private にする形。後者は「スコープの終わりまで効く」ので、
+あとからメソッドを足すときに位置に注意が要ります。
 
-### クラスの再オープン
+**ここまでで分かったこと**: 外から見えるものの決め方。次は、クラス自身に手を入れる 2 つの形。
+
+## 5. クラス自身のメソッド — `class << self`
+
+`self` がクラスを指す場所（§3）にメソッドを定義すると、そのクラス自身のメソッドになります。
+
+```ruby
+class C
+  class << self
+    def my_method
+      1 + 1
+    end
+  end
+end
+```
+
+実測: `C.my_method` は `2`。
+
+> This allows definition of methods and attributes on a class (or module) without needing to
+> write `def self.my_method`.
+> — modules_and_classes_rdoc
+
+`def self.my_method` と同じ意味です。**まとめて何本も定義するときに `class << self` が便利**という
+だけの違い。
+
+継承で引き継がれるものも確かめておきます。
+
+```ruby
+class A
+  Z = 1
+  def z = Z
+end
+
+class B < A
+end
+```
+
+> The same is true for constants.（継承について）
+> — modules_and_classes_rdoc
+
+実測: `B.new.z` は `1`、`B::Z` も `1`。**メソッドだけでなく定数も引き継がれます。**
+
+**ここまでで分かったこと**: クラス自身に対する定義。最後に、定義を後から足す形。
+
+## 6. クラスの再オープン
+
+課題 2 の `Greeter` で見た仕組みの、正式な回収です。
 
 ```ruby
 class Reopened
@@ -127,11 +230,22 @@ class Reopened
 end
 ```
 
-2 回目の `class Reopened` は新しいクラスを作らず、**すでにあるクラスを開き直す**。
-別のファイルからでも、標準ライブラリのクラス（`String` など）に対してでもできる。
+> Just like modules, classes can also be reopened.
+> You can omit its superclass when you reopen a class.
+> — modules_and_classes_rdoc
 
-この課題では「そういう仕組みがある」と読めれば足りる。
-自分の設計として使うのは Ruby 中級の範囲である。
+2 回目の `class Reopened` は**新しいクラスを作らず、すでにあるクラスを開き直します**。
+実測: `Reopened.new(7).one` は `7`——2 つのブロックで定義したものが 1 つのクラスに揃っている。
+
+別のファイルからでも、**標準ライブラリのクラス（`String` など）に対してでも**できます。
+JS でこれをするにはプロトタイプに代入する必要がありますが、Ruby は言語の正規の書き方として
+公式入門に載っている。
+
+この課題では「そういう仕組みがある」と読めれば足ります。**自分の設計として使うのは
+Ruby 中級の範囲**（オープンクラスとメタプログラミング）です。
+
+**ここまでで分かったこと**: この手本の全部。オブジェクトの中身（§2）→ `self`（§3）→
+可視性（§4）→ クラス自身への定義（§5）→ 後から足す（§6）。
 
 ## JS ではこうだが Ruby では
 

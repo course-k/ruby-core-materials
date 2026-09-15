@@ -1,0 +1,94 @@
+# rb1-09 の claim 表 — why.md の照合に使う。作り方の規約は根幹 §3.1。
+task: rb1-09-blocks-procs
+
+claims:
+  - id: c1
+    required: true
+    claim: '`yield` は、そのメソッドに渡されたブロックを呼ぶ。渡されていなければ LocalJumpError になる'
+    source: https://docs.ruby-lang.org/en/4.0/Kernel.html
+    quote: >-
+      block_given?: Returns `true` if a block was passed to the calling method.
+    note: >-
+      実測: yield を書いたメソッドをブロック無しで呼ぶと
+      「LocalJumpError: no block given (yield)」。手本の try が block_given? で
+      それを避けている（ブロック有りで 42、無しで "no block"）。
+
+  - id: c2
+    required: true
+    claim: '`proc`（非 lambda）の中の `return` は、それを囲むメソッドから抜ける。lambda の中の `return` は、その lambda から抜けるだけ'
+    source: https://docs.ruby-lang.org/en/4.0/Proc.html
+    quote: >-
+      In non-lambda procs, `return` means exit from embracing method
+      (and will throw LocalJumpError if invoked outside the method).
+      / In lambdas, `return` and `break` means exit from this lambda.
+    note: >-
+      実測: 手本の returns_from_the_enclosing_method は 4 を返す。
+      1 行目の -> { return 3 } は lambda なので 3 は lambda の戻り値にしかならず捨てられ、
+      2 行目の proc { return 4 } がメソッドごと抜ける。3 行目の return 5 には届かない。
+
+  - id: c3
+    required: true
+    claim: '`&:upcase` は `:upcase.to_proc` の略。Symbol を Proc に変換して、ブロックとして渡している'
+    source: https://docs.ruby-lang.org/en/4.0/Symbol.html
+    quote: >-
+      to_proc: Returns a `Proc` object which calls the method with name of `self` on the
+      first parameter and passes the remaining parameters to the method.
+      / proc = :to_s.to_proc ; proc.call(1000) # => "1000" ;
+      (1..3).collect(&:to_s) # => ["1", "2", "3"]
+    note: >-
+      実測: [1,2,3].map(&:to_s) は ["1","2","3"]。:to_s.to_proc.call(9) は "9"。
+      & は「この Proc をブロックとして渡す」記号で、Symbol に付けると to_proc が呼ばれる。
+      展開すると [1,2,3].map { |x| x.to_s } と同じ。
+
+  - id: c4
+    required: true
+    claim: 'lambda は引数の数を厳しく見る（合わないと ArgumentError）。proc は緩く、足りなければ nil を補い、多ければ捨てる'
+    source: https://docs.ruby-lang.org/en/4.0/Proc.html
+    quote: >-
+      In lambdas, arguments are treated in the same way as in methods: strict, with
+      ArgumentError for mismatching argument number, and no additional argument processing.
+      / Regular procs accept arguments more generously: missing arguments are filled with
+      `nil`, single Array arguments are deconstructed if the proc has multiple arguments,
+      and there is no error raised on extra arguments.
+    note: >-
+      実測: proc { |a,b| [a,b] } に 1 個渡すと [1, nil]、3 個渡すと [1,2]、
+      配列 [1,2] を 1 個渡すと [1,2]（分解される）。
+      lambda { |a,b| } に 1 個渡すと「wrong number of arguments (given 1, expected 2)」。
+
+  - id: c5
+    required: false
+    claim: 'Proc はクロージャで、作られたときの文脈を覚えている'
+    source: https://docs.ruby-lang.org/en/4.0/Proc.html
+    quote: >-
+      A Proc object is an encapsulation of a block of code, which can be stored in a local
+      variable, passed to a method or another Proc, and can be called.
+      / Proc objects are closures, meaning they remember and can use the entire context in
+      which they were created.
+    note: >-
+      実測: gen_times(3) が返す Proc は factor = 3 を覚えていて、call(12) で 36 を返す。
+      手本のコメント「remembers the value of factor at the moment of creation」がこれ。
+
+  - id: c6
+    required: false
+    claim: '`lambda?` で、その Proc が lambda かどうかを聞ける'
+    source: https://docs.ruby-lang.org/en/4.0/Proc.html
+    quote: >-
+      You can tell a lambda from a regular proc by using the `lambda?` instance method.
+    note: '実測: lambda { }.lambda? は true、proc { }.lambda? は false。'
+
+  - id: c7
+    required: false
+    claim: 'メソッドが `&block` で受け取ったブロックは Proc オブジェクトになり、変数として持ち回せる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/methods_rdoc.html
+    quote: >-
+      The block argument is indicated by `&` and must come last.
+    note: >-
+      手本の make_proc は受け取った block をそのまま返すだけ。
+      ブロックは構文だが、& を通すとオブジェクトになって返り値にもできる——
+      この往復が課題 9 の主題。
+
+not_graded:
+  - topic: Method オブジェクトと method(:name)
+    note: 手本に無い。質問されたら答える。
+  - topic: Enumerator と遅延評価
+    note: 手本に無い。中級で扱う。

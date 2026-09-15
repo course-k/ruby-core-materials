@@ -1,38 +1,82 @@
 # 模範解説 — rb1-09-blocks-procs
 
-`why.md` を書き終えてから開く。
+`why.md` の §1〜§3 を書き終えてから開く。読み終えたら §4「突き合わせで変わったこと」を書く。
 
-## 読み解き
+この解説は **前の節で分かったことの上に次の節が乗る順序**で並べてある。
+§3（オブジェクトにする）は §2（ブロックは値ではない）が分かって初めて意味を持ち、
+§5（`return` の飛び先）は §4（2 種類がある）の帰結として立つ。飛ばさずに読む。
 
-### ブロックとは何か
+## 1. この手本は何を見せているか
 
-`each { |x| ... }` の `{ |x| ... }` がブロック。**メソッド呼び出しに付ける、名前の無いコードの塊**で、
-引数リストの一部ではない（だから括弧の外に書く）。1 つのメソッド呼び出しに 1 つだけ付けられる。
+課題 7 でブロックを**渡す側**、課題 8 で**受け取る側**をやりました。
+**この手本はブロックそのものの正体**を扱います。
 
-受け取り方は 2 通りある。
+手本はたった 4 つの定義しかありませんが、それぞれが別の問いに答えています。
+
+| 定義 | 答える問い |
+|---|---|
+| `try` | ブロックが渡されなかったらどうするか |
+| `make_proc` | ブロックをオブジェクトにできるか |
+| `gen_times` | Proc は何を覚えているか |
+| `returns_from_the_enclosing_method` | **`return` はどこへ戻るか** |
+
+最後の 1 つがこの課題の山場です。
+
+## 2. ブロックは値ではない
+
+`each { |x| ... }` の `{ |x| ... }` がブロック。**メソッド呼び出しに付ける、名前の無いコードの塊**
+です。ここが大事——**引数リストの一部ではありません。** だから括弧の外に書くし、
+1 つのメソッド呼び出しに 1 つだけしか付けられない。
+
+JS の関数は値なので、配列に入れたり変数に代入したりできます。**Ruby のブロックはできません。**
+構文であって値ではない。
+
+受け取る側から見ると、いちばん素直な形が `yield` です。
 
 ```ruby
-def try              # 受け取らずに yield で呼ぶ
+def try
   if block_given?
     yield
   else
     "no block"
   end
 end
+```
 
-def make_proc(&block) # Proc オブジェクトとして受け取る
+`yield` は「いま渡されているブロックを呼ぶ」。渡されていないのに `yield` すると
+`LocalJumpError: no block given (yield)`（実測）になるので、省略可能にするなら
+`block_given?` で確かめます。
+
+> block_given?: Returns `true` if a block was passed to the calling method.
+> — https://docs.ruby-lang.org/en/4.0/Kernel.html
+
+実測: `try` はブロック無しで `"no block"`、`try { 42 }` で `42`。
+
+**ここまでで分かったこと**: ブロックは値ではなく、`yield` でその場で呼ぶもの。
+次は、それでも値にしたいときの話。
+
+## 3. ブロックをオブジェクトにする — Proc
+
+手本の `make_proc` は 1 行しかありません。
+
+```ruby
+def make_proc(&block)
   block
 end
 ```
 
-`yield` は「いま渡されているブロックを呼ぶ」。ブロックが渡されていないのに `yield` すると
-`LocalJumpError` になるので、省略可能にするなら `block_given?` で確かめる。
+**受け取ったブロックをそのまま返しているだけ。** §2 で「ブロックは値ではない」と言ったのに、
+これは返り値になっています。`&` がその変換をしている。
 
-`&block` の形で受け取ると**ブロックが Proc オブジェクトになる**ので、変数に入れたり、
-別のメソッドへ渡したり、あとで呼んだりできる。原典は「ただ呼ぶだけなら `yield` のほうがよい」と
-勧めている（`&` で受け取ると Proc を作るぶんだけ手間がかかる）。
+> A Proc object is an encapsulation of a block of code, which can be stored in a local
+> variable, passed to a method or another Proc, and can be called.
+> — https://docs.ruby-lang.org/en/4.0/Proc.html
 
-### Proc の作り方は 5 通り
+**`&` を通るとブロックが Proc オブジェクトになる。** 変数に入れられるし、別のメソッドへ渡せるし、
+あとで呼べる。原典は「ただ呼ぶだけなら `yield` のほうがよい」と勧めています（`&` は Proc を
+作るぶんだけ手間がかかる）。
+
+作り方は 5 通りありますが、どれも同じ Proc です。
 
 ```ruby
 Proc.new { |x| x**2 }   # コンストラクタ
@@ -44,79 +88,122 @@ lambda { |x| x**2 }     # lambda 版
 
 呼び方は `call` / `.()` / `[]` の 3 通り。どれも同じ。
 
-### Proc はクロージャ
+そして Proc は**作られたときの文脈を覚えています**。
+
+> Proc objects are closures, meaning they remember and can use the entire context in which
+> they were created.
 
 ```ruby
 def gen_times(factor)
-  Proc.new { |n| n * factor }
+  Proc.new { |n| n * factor }   # remembers the value of factor at the moment of creation
 end
 ```
 
-作られた時点の `factor` を覚えている。`gen_times(3)` が返した Proc は、
-`gen_times` を抜けたあとでも `factor` が 3 だったことを知っている。
+実測: `gen_times(3).call(12)` は `36`。`gen_times` を抜けたあとでも、`factor` が 3 だったことを
+知っている。これが**クロージャ**です。
 
-### lambda と非 lambda の違い
+**ここまでで分かったこと**: ブロックは `&` でオブジェクトになり、文脈を持ち運べる。
+次に——その Proc には 2 種類ある。
 
-違いは 2 つだけである。
+## 4. Proc には 2 種類ある — lambda かどうか
 
-**(1) 引数の扱い**
+見た目は似ていますが、`lambda` / `->` で作ったものと、`proc` / `Proc.new` / ブロックから
+作ったものは**振る舞いが違います**。
 
-| | 非 lambda（`proc` / ブロック） | lambda |
+> You can tell a lambda from a regular proc by using the `lambda?` instance method.
+
+実測: `lambda { }.lambda?` は `true`、`proc { }.lambda?` は `false`。
+
+違いは 2 つだけ。**1 つ目は引数の扱い**です。
+
+> In lambdas, arguments are treated in the same way as in methods: **strict**, with
+> ArgumentError for mismatching argument number, and no additional argument processing.
+> Regular procs accept arguments **more generously**: missing arguments are filled with `nil`,
+> single Array arguments are deconstructed if the proc has multiple arguments, and there is
+> no error raised on extra arguments.
+
+実測で並べると差がはっきりします。
+
+| 渡し方 | `proc { \|a,b\| [a,b] }` | `lambda { \|a,b\| }` |
 |---|---|---|
-| 足りない | `nil` で埋める | `ArgumentError` |
-| 多すぎる | 捨てる | `ArgumentError` |
-| 配列 1 つを渡す | 複数引数に分解する | `ArgumentError` |
+| `call(1)` | `[1, nil]` | `ArgumentError (given 1, expected 2)` |
+| `call(1,2,3)` | `[1, 2]` | `ArgumentError` |
+| `call([1,2])` | `[1, 2]`（分解される） | `ArgumentError` |
 
-**(2) `return` の効き方**
+課題 7 で `hash.map { |k, v| ... }` がペアを分解できたのは、**ブロックが非 lambda だから**です。
 
-- lambda の中の `return` … その lambda から戻るだけ。メソッドは続く。
-- 非 lambda の中の `return` … **それを囲んでいるメソッドごと抜ける**。
+**ここまでで分かったこと**: 2 種類あり、引数の厳しさが違う。
+2 つ目の違いが、この課題の山場です。
+
+## 5. `return` はどこへ戻るか
+
+> **In non-lambda procs, `return` means exit from embracing method**
+> (and will throw LocalJumpError if invoked outside the method).
+> **In lambdas, `return` and `break` means exit from this lambda.**
+
+手本の 3 行が、これを 1 つのメソッドで見せています。
 
 ```ruby
 def returns_from_the_enclosing_method
-  -> { return 3 }.call   # ここでは戻らない。lambda から出るだけ
-  proc { return 4 }.call # ここでメソッドごと抜ける。戻り値は 4
-  return 5               # 到達しない
+  -> { return 3 }.call   # just returns from lambda into method body
+  proc { return 4 }.call # returns from method
+  return 5
 end
 ```
 
-`lambda?` で見分けられる。
+**実測の戻り値は `4`。**
 
-**使い分け**: 原典の言い方が分かりやすい——lambda は「それ自体で完結した関数」として、
-メソッドと同じように振る舞ってほしいときに使う。非 lambda は
-「メソッドに処理を渡して回してもらう」イテレータ的な用途に向く
-（`map { |a, b| ... }` が `[[1, 2]]` の要素を `a` と `b` に分解できるのは非 lambda だから）。
+1 行目の `-> { return 3 }` は lambda なので、`return 3` はその lambda から出るだけ。
+戻り値 `3` は誰も受け取らないので捨てられ、メソッドは 2 行目へ進みます。
 
-**迷ったら lambda**。引数の間違いがその場で分かり、`return` が驚きを生まないため。
+2 行目の `proc { return 4 }` は非 lambda なので、`return 4` は**メソッドごと抜けます**。
+だから 3 行目の `return 5` には**到達しません**。
 
-### `&` の 2 つの顔
+「同じ `return` なのに飛び先が違う」——ここが Ruby で最も驚く場所の 1 つです。
 
-- **メソッドの定義側**の `&block` … ブロックを Proc として受け取る。
-- **呼び出し側**の `&何か` … その何かをブロックに変換して渡す。
+ブロックの中から抜ける語は 3 つあり、それぞれ飛び先が違います。
 
-呼び出し側の `&` は、Proc ならそのままブロックにし、Proc でなければ `to_proc` を呼ぶ。
-`Symbol#to_proc` があるので `&:to_s` が書ける。
-
-```ruby
-:to_s.to_proc.call(1)  # => "1"
-[1, 2].map(&:to_s)     # => ["1", "2"]
-```
-
-`&` を通してもその Proc が lambda かどうかは変わらない。だから
-`[[1, 2], [3, 4]].map(&l)` は `ArgumentError` になる（配列 1 つが分解されないため）。
-
-### `return` / `break` / `next` の抜ける先
-
-出力予測（`predict/01.rb`）で確かめる内容をまとめておく。
-
-| 書いたもの | 抜ける先 | ブロックを呼んだメソッドの戻り値 |
+| 書いたもの | 抜ける先 | メソッドの戻り値 |
 |---|---|---|
 | `next 値` | そのブロックの 1 回分 | ブロックの戻り値がその値になる |
 | `break 値` | ブロックを渡したメソッド（`each` など） | その値 |
 | `return 値` | **ブロックを囲んでいるメソッド全体** | メソッドの戻り値がその値 |
 
-`next` は JS の `continue`、`break` は JS の `break` に近い。
-`return` だけが「ブロックの外側のメソッドまで」飛ぶので、ここが驚きになる。
+`next` は JS の `continue`、`break` は JS の `break` に近い。**`return` だけが外側のメソッドまで
+飛ぶ**ので、ここが驚きになる。
+
+**使い分け**: lambda は「それ自体で完結した関数」として、メソッドと同じように振る舞って
+ほしいときに。非 lambda は「メソッドに処理を渡して回してもらう」イテレータ的な用途に。
+
+**迷ったら lambda。** 引数の間違いがその場で分かり、`return` が驚きを生まないため。
+
+**ここまでで分かったこと**: 2 種類の違いの全部。最後に、記号の読み方。
+
+## 6. `&` の 2 つの顔
+
+同じ `&` が、書く位置で別の働きをします。
+
+| 位置 | 働き |
+|---|---|
+| **定義側** `def m(&block)` | ブロックを Proc として受け取る（§3） |
+| **呼び出し側** `m(&何か)` | その何かをブロックに変換して渡す |
+
+呼び出し側の `&` は、Proc ならそのままブロックにし、**Proc でなければ `to_proc` を呼びます**。
+`Symbol` が `to_proc` を持っているので `&:to_s` が書ける。
+
+> to_proc: Returns a `Proc` object which calls the method with name of `self` on the first
+> parameter and passes the remaining parameters to the method.
+> proc = :to_s.to_proc ; proc.call(1000) # => "1000" ; (1..3).collect(&:to_s) # => ["1", "2", "3"]
+> — https://docs.ruby-lang.org/en/4.0/Symbol.html
+
+実測: `[1,2,3].map(&:to_s)` は `["1","2","3"]`、`:to_s.to_proc.call(9)` は `"9"`。
+展開すると `[1,2,3].map { |x| x.to_s }` と同じです。
+
+**`&` を通しても lambda かどうかは変わりません。** だから lambda を `&l` で渡すと、
+`[[1, 2], [3, 4]].map(&l)` は `ArgumentError` になる（§4 のとおり配列が分解されないため）。
+
+**ここまでで分かったこと**: この手本の全部。ブロックは値でない（§2）→ `&` でオブジェクトに
+なる（§3）→ 2 種類ある（§4）→ `return` の飛び先が違う（§5）→ `&` の 2 つの顔（§6）。
 
 ## JS ではこうだが Ruby では
 
