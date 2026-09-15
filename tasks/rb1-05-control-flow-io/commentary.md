@@ -1,13 +1,31 @@
 # 模範解説 — rb1-05-control-flow-io
 
-`why.md` を書き終えてから開く。
+`why.md` の §1〜§3 を書き終えてから開く。読み終えたら §4「突き合わせで変わったこと」を書く。
 
-## 読み解き
+この解説は **前の節で分かったことの上に次の節が乗る順序**で並べてある。
+§4（`&.`）は §3（優先順位）と同じ「記号の見た目に引きずられると落ちる」話で、
+§5（入出力）は §1〜§4 を使って道具として成立させる節。飛ばさずに読む。
 
-### 分岐は全部「値を返す式」
+## 1. この手本は何を見せているか
+
+課題 4 で「`if` は式で値を返す」「偽は `nil` と `false` だけ」を見た。
+**この手本はその上に、分岐の書き方の選択肢と、プログラムの外との出入口を足す。**
+
+| 定義 | 何を見せるか |
+|---|---|
+| `label_for` / `unless_label` / `case_label` | 分岐の 3 つの書き方 |
+| `bumped_if_zero` / `count_with_until` | 後置（修飾子）形式 |
+| `count_with_while` | `while` |
+| `and_versus_double_ampersand` | `and` と `&&` の優先順位の差 |
+| `safely_joined` / `joined_without_the_second_guard` | `&.` の効く範囲 |
+| `warn_twice` / `exit_with` / `first_argument` | 外との出入口 |
+
+**後半 3 組が本題**です。前半は課題 4 の復習にあたるので、そこは軽く流して構いません。
+
+## 2. 分岐の書き方は 3 つあり、どれも値を返す
 
 ```ruby
-label = if a.zero?
+label = if a == 0
           "a is zero"
         elsif a == 1
           "a is one"
@@ -16,90 +34,156 @@ label = if a.zero?
         end
 ```
 
-`if` は最後に評価した式の値を返す。`unless` も `case` も同じ。
-`else` が無くてどの枝にも入らなかったときは `nil` が返る。
+課題 4 のとおり `if` は値を返します。`unless` も同じ。
 
-`unless` は `if not` と同じで、`elsif` は使えない（`else` は使える）。
-「否定の条件が読みにくいとき」に使うと素直に読める。
+> The `unless` expression is the opposite of the `if` expression. If the value is false,
+> the "then" expression is executed.
+> The result value of an `unless` expression is the last value executed in the expression.
+> — https://docs.ruby-lang.org/en/4.0/syntax/control_expressions_rdoc.html
 
-### 主語の無い `case`
+`unless` に `elsif` はありません（`else` は使えます）。「否定の条件が読みにくいとき」に限って使う。
 
-```ruby
-label = case
-        when a == 1, a == 2 then "a is one or two"
-        ...
-```
-
-`case` のあとに値を書かないと、`when` に書いた式そのものの真偽で分岐する。
-`if` / `elsif` の連なりと同じ意味だが、条件が並ぶときはこちらのほうが読みやすい。
-1 つの `when` にカンマで複数条件を並べると「どれかが当たれば」になる。
-
-### 後置の `if`
+`case_label` は**主語の無い `case`** です。
 
 ```ruby
-a += 1 if a.zero?
+case
+when a == 1, a == 2 then "a is one or two"
+when a == 3 then "a is three"
+else "I don't know what a is"
+end
 ```
 
-左が本体、右が条件。**条件が先に評価される**。1 行で読み切れる短い条件のときに使う。
+課題 4 の `case` は `case a` と値を置き、`when` の値と `===` で照合していました。ここは
+`case` の後ろに何も無く、**`when` に書いた式そのものの真偽**で分岐します。`if`/`elsif` の
+連なりと同じ意味ですが、条件が並ぶときはこちらが読みやすい。
 
-注意点が 1 つある。Control Expressions が挙げている例で、
+そして**後置（修飾子）形式**。
+
+> `if` and `unless` can also be used to modify an expression. When used as a modifier the
+> left-hand side is the "then" statement and the right-hand side is the "test" expression.
+> — control_expressions_rdoc
 
 ```ruby
-p a if a = 0.zero?
+a += 1 if a.zero?       # bumped_if_zero
+b += 1 until b > limit  # count_with_until
 ```
 
-は `NameError` になる。Ruby は左から構文解析するので、本体の `a` を先に「メソッド呼び出し」と
-見なしてしまい、あとから来る代入で `a` がローカル変数になっても手遅れになる。
-**後置の条件で変数を作らない**のが実務上の結論。
+左が本体、右が条件。1 行で読み切れる短い条件のときに使います。
 
-### `while` と `until`
+**1 つ罠があります。後置の条件で変数を作らない。** `p a if a = 0.zero?` は `NameError` に
+なります。Ruby は左から構文解析するので、本体の `a` を先にメソッド呼び出しと見なしてしまい、
+あとから来る代入では手遅れになる。
 
-`while` は条件が真のあいだ回り、`until` は条件が偽のあいだ回る。
-どちらも `do` を書いてよいが、省くのが普通。
-`while` / `until` の値は `nil`（`break` に値を渡したときだけその値）。
+`while` / `until` は条件が真／偽のあいだ回ります。どちらも値は `nil` です（`break` に値を
+渡したときだけその値）。
 
-後置形も使える（`b += 1 until b > 10`）。
+**ここまでで分かったこと**: 分岐と繰り返しの書き方。ここまでは見た目の選択の話でした。
+次の 2 節は、**見た目に引きずられると結果が変わる**場所です。
 
-### `and` / `or` は `&&` / `||` と優先順位が違う
+## 3. `and` と `&&` は別物 — 優先順位
 
-Precedence の表で、上から順に `&&` → `||` → `=` → `not` → `or, and` という並びになっている。
-つまり **`&&` は `=` より強く、`and` は `=` より弱い**。
+手本の `and_versus_double_ampersand` は 2 行しかありません。
 
 ```ruby
-a = true && false   # a には (true && false) が入る → false
-b = true and false  # (b = true) and false と解釈される → b は true
+a = true && false
+b = true and false
+[a, b]
 ```
 
-`b` の行は代入が先に済んでしまい、`and false` は捨てられる。
-**代入と一緒に使うときは `&&` / `||` を使う。** `and` / `or` は
-「`do_something or raise ...`」のような制御の流れを書くときに限って使う、というのが通例である。
+**結果は `[false, true]`**（実測）。同じ意味なら両方 `false` のはずです。
 
-### `&.` は「次の 1 呼び出しだけ」を飛ばす
+一次情報の優先順位表を、高い順に抜き出します。
+
+> … `&&` / `||` / `..`, `...` / `?`, `:` / modifier-rescue /
+> **`=`, `+=`, `-=`, etc.** / `defined?` / `not` / **`or`, `and`** / modifier-if, …
+> — https://docs.ruby-lang.org/en/4.0/syntax/precedence_rdoc.html
+
+**`&&` は `=` より強く、`and` は `=` より弱い。** だから
 
 ```ruby
-"Python is fascinating!".match(REGEX)&.values_at(1, 2).join(" - ")   # NoMethodError
-"Python is fascinating!".match(REGEX)&.values_at(1, 2)&.join(" - ")  # nil
+b = true and false   # (b = true) and false と解釈される
 ```
 
-`match` が `nil` を返すと、`&.values_at` は呼ばずに `nil` を返す。
-しかしそこで**短絡は終わる**ので、続く `.join` は `nil` に対して呼ばれ `NoMethodError` になる。
-連鎖のすべての段に `&.` を書く必要がある。
+代入が先に済み、`and false` の結果は捨てられます。`b` には `true` が入る。
 
-### `puts` / `warn` / `exit`
+JS に `and` / `or` に当たる低優先順位の語はありません。`&&` と `||` だけなので、
+「同じものの別名」と思って代入の右辺に `and` を書くと結果が変わります。
 
-- `puts` … 標準出力へ書く。戻り値は `nil`。
-- `warn` … 標準エラーへ書く。複数の文字列を渡すと 1 行ずつ出る。戻り値は `nil`。
-- `exit` … `SystemExit` を**送出**してプログラムを終える。例外なので `rescue` で捕まえられるし、
-  `ensure` は実行される。引数に整数を渡すとそれが OS へ返す終了コードになる。
-  `exit` / `exit(true)` は成功（0）、`exit(false)` は失敗を意味する。
+**結論**: 代入と一緒に使うときは `&&` / `||`。`and` / `or` は
+`do_something or raise ...` のような制御の流れを書くときに限る。
 
-「正常な結果は標準出力へ、異常の報告は標準エラーへ、成否は終了コードで」というのが
-コマンドラインの道具の約束である。この約束は課題 12・21 で作る道具でも守る。
+**ここまでで分かったこと**: 見た目が似ていても優先順位が違う組があること。
+次はもう 1 つ、JS の同じ記号と挙動が違うものを見ます。
 
-### `ARGV` と `$stdin`
+## 4. `&.` が守るのは「その 1 回」だけ
 
-`ARGV` はコマンドラインで渡された語の配列（プログラム名は含まない）。
-`$stdin` は標準入力の `IO` オブジェクトで、`read` で全部を 1 つの文字列として読む。
+手本は 2 つのメソッドを並べて、違いを 1 文字で見せています。
+
+```ruby
+def safely_joined(text)
+  text.match(REGEX)&.values_at(1, 2)&.join(" - ")
+end
+
+def joined_without_the_second_guard(text)
+  text.match(REGEX)&.values_at(1, 2).join(" - ")
+end
+```
+
+違いは 2 つ目の `&.` の有無だけ。マッチしない文字列を渡すと、上は `nil` を返し、
+**下は `NoMethodError` で落ちます**（実測: `undefined method 'join' for nil`）。
+
+> `&.`, called "safe navigation operator", allows to skip method call when receiver is `nil`.
+> It returns `nil` and doesn't evaluate method's arguments if the call is skipped.
+> — https://docs.ruby-lang.org/en/4.0/syntax/calling_methods_rdoc.html
+
+**「その呼び出しを飛ばして `nil` を返す」だけ**です。返った `nil` に続けて `.join` と書けば、
+それは `nil` に対する普通のメソッド呼び出しになる。
+
+**ここが JS と決定的に違います。** JS の `a?.b.c` は `a` が `null` なら**連鎖ごと**短絡して
+`undefined` を返します。Ruby の `&.` は短絡しません。だから**連鎖のすべての段に `&.` が要る**。
+
+同じ記号の直観で書くと落ちる、いちばん踏みやすい差です。
+
+**ここまでで分かったこと**: 記号の見た目に引きずられる 2 か所。
+次は、ここまでの道具を使って「プログラムの外」とやり取りする。
+
+## 5. 外との出入口 — 標準出力・標準エラー・終了コード
+
+コマンドラインの道具には約束があります。**正常な結果は標準出力へ、異常の報告は標準エラーへ、
+成否は終了コードで。** 手本の最後の 3 つがその 3 つの口です。
+
+| 道具 | 行き先 | 戻り値 |
+|---|---|---|
+| `puts` | 標準出力 | `nil` |
+| `warn` | 標準エラー | `nil` |
+| `exit(n)` | — | 戻らない（プロセスが終わる） |
+
+> puts: Equivalent to `$stdout.puts(*objects)` for the given objects.
+> warn: Issue a warning based on the given messages and options.
+> exit: Exits the current process after calling any registered `at_exit` handlers.
+> — https://docs.ruby-lang.org/en/4.0/Kernel.html
+
+実測で行き先を確かめられます。
+
+```
+ruby -e 'warn "e"; puts "o"' 2>/dev/null   # → o だけ残る
+ruby -e 'warn "e"; puts "o"' 1>/dev/null   # → e だけ残る
+```
+
+`warn_twice` のように複数の文字列を渡すと 1 行ずつ出ます。
+
+`exit(status)` の数値はそのまま OS へ返る終了コードになります（実測: `exit(3)` の後の `$?` は
+`3`）。`exit` / `exit(true)` は成功（0）、`exit(false)` は失敗。
+
+**`exit` は例外で実装されています。** `SystemExit` を送出するので `rescue` で捕まえられるし、
+`ensure` は実行される（例外そのものは課題 11 で扱う）。「後片付けを必ずやってから終わる」が
+成立するのはこの作りのためです。
+
+`first_argument` が触っている `ARGV` は、コマンドラインで渡された語の配列（プログラム名は
+含まない）。*引数の本格的な扱いは課題 19 で `OptionParser` とあわせて扱います。*
+
+**ここまでで分かったこと**: この手本の全部。分岐の選択肢（§2）→ 優先順位の罠（§3）→
+`&.` の範囲（§4）→ 外との 3 つの口（§5）。この約束は課題 12・21 で作る道具でも守ります。
 
 ## JS ではこうだが Ruby では
 

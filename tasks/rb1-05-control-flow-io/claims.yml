@@ -1,0 +1,88 @@
+# rb1-05 の claim 表 — why.md の照合に使う。作り方の規約は根幹 §3.1。
+task: rb1-05-control-flow-io
+
+claims:
+  - id: c1
+    required: true
+    claim: '後置の `if`（修飾子形式）は、左が本体・右が条件になる。1 行で書きたいときに使う'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/control_expressions_rdoc.html
+    quote: >-
+      `if` and `unless` can also be used to modify an expression. When used as a modifier
+      the left-hand side is the "then" statement and the right-hand side is the "test"
+      expression.
+    note: 手本では `a += 1 if a.zero?` と `b += 1 until b > limit` の 2 か所。
+
+  - id: c2
+    required: true
+    claim: '`and`/`or` は `&&`/`||` より優先順位が低く、代入（`=`）よりも低い。だから `b = true and false` は `(b = true) and false` と解釈される'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/precedence_rdoc.html
+    quote: >-
+      （優先順位表の並び、高い順）… `&&` / `||` / `..`, `...` / `?`, `:` /
+      modifier-rescue / `=`, `+=`, `-=`, etc. / `defined?` / `not` / `or`, `and` /
+      modifier-if, modifier-unless, modifier-while, modifier-until
+    note: >-
+      実測: a = true && false は false、b = true and false は b が true。
+      手本の and_versus_double_ampersand が返す [a, b] は [false, true]。
+    js_contrast: >-
+      JS に and / or に当たる低優先順位の語は無い。&& と || だけなので、
+      「同じものの別名」と思って代入の右辺に and を書くと結果が変わる。
+
+  - id: c3
+    required: true
+    claim: '`a&.b` は `a` が `nil` なら `b` を呼ばずに `nil` を返す。ただし返った `nil` に続けて `.c` と書けば、そこで NoMethodError になる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/calling_methods_rdoc.html
+    quote: >-
+      `&.`, called "safe navigation operator", allows to skip method call when receiver is
+      `nil`. It returns `nil` and doesn't evaluate method's arguments if the call is skipped.
+    note: >-
+      実測: "abc".match(/z/)&.values_at(0).join("-") は
+      「undefined method 'join' for nil」。&. を 2 つ目にも付けると nil が返る。
+      手本の safely_joined と joined_without_the_second_guard の対比がこれ。
+    js_contrast: >-
+      JS の ?. は a?.b.c と書くと b 以降の連鎖ごと短絡する（short-circuit）。
+      Ruby の &. は短絡しない——その 1 回の呼び出しだけを守る。同じ記号の直観で
+      書くと落ちる、いちばん踏みやすい差。
+
+  - id: c4
+    required: true
+    claim: '`warn` は標準エラー出力へ、`puts` は標準出力へ書く'
+    source: https://docs.ruby-lang.org/en/4.0/Kernel.html
+    quote: >-
+      Issue a warning based on the given messages and options.
+      / puts: Equivalent to `$stdout.puts(*objects)` for the given objects.
+    note: >-
+      実測: ruby -e 'warn "e"; puts "o"' で 2>/dev/null すると "o" だけ、
+      1>/dev/null すると "e" だけが残る。
+
+  - id: c5
+    required: true
+    claim: '`exit(status)` はプロセスを終わらせ、渡した数値が終了コードになる'
+    source: https://docs.ruby-lang.org/en/4.0/Kernel.html
+    quote: >-
+      Exits the current process after calling any registered `at_exit` handlers.
+    note: '実測: ruby -e ''exit(3)'' の後の $? は 3。'
+
+  - id: c6
+    required: false
+    claim: '`unless` は `if` の否定。値が偽のときに本体が実行される'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/control_expressions_rdoc.html
+    quote: >-
+      The `unless` expression is the opposite of the `if` expression. If the value is false,
+      the "then" expression is executed.
+      / The result value of an `unless` expression is the last value executed in the expression.
+
+  - id: c7
+    required: false
+    claim: '条件を書かない `case`（`case` の直後に値を置かない形）は、`when` に書いた式そのものの真偽で分岐する'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/control_expressions_rdoc.html
+    quote: >-
+      You may place multiple conditions on the same `when`. / Ruby will try each condition in turn.
+    note: >-
+      手本の case_label は `case` の後ろに値が無く、`when a == 1, a == 2` と条件式を直接書いている。
+      課題 4 の case（値を === で照合する形）との対比。
+
+not_graded:
+  - topic: ARGV とコマンドライン引数の受け取り
+    note: 課題 19（optparse-executable）で OptionParser とあわせて正式に扱う。
+  - topic: 例外と SystemExit
+    note: 課題 11（exceptions）で扱う。exit が例外で実装されていることもそこで。

@@ -1,0 +1,89 @@
+# rb1-06 の claim 表 — why.md の照合に使う。作り方の規約は根幹 §3.1。
+task: rb1-06-strings-symbols
+
+claims:
+  - id: c1
+    required: true
+    claim: '`"#{x}"` は二重引用符の中でだけ式を評価して埋める。`''#{x}''` は文字どおりの `#{x}` になる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/literals_rdoc.html
+    quote: >-
+      Double-quoted strings allow interpolation of other values using `#{...}`.
+      / Interpolation may be disabled by escaping the "#" character or using single-quoted
+      strings. / single-quoted strings also disable all escape sequences except for the
+      single-quote and backslash.
+    js_contrast: >-
+      JS はバッククォートのテンプレートリテラルで `${}`。引用符の種類で補間が切り替わるのではなく、
+      別の記法になる。Ruby は同じ「文字列」の中で引用符が補間の有無を決める。
+
+  - id: c2
+    required: true
+    claim: '`# frozen_string_literal: true` は、そのファイルの文字列リテラルを凍結する。凍結された文字列を書き換えようとすると FrozenError になる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/comments_rdoc.html
+    quote: >-
+      Indicates that string literals should be allocated once at parse time and frozen.
+      It must appear in the first comment section of a file.
+    note: >-
+      実測: この宣言があるファイルで "hello".frozen? は true、"abc" << "d" は
+      FrozenError（can't modify frozen String）。式展開のある "one #{1+1}" は
+      動的に作られるので frozen? が false。+"" は非凍結の文字列を作る書き方で、
+      手本の built_buffer がこれを使っている。
+
+  - id: c3
+    required: true
+    claim: '`:name` はインタプリタ内部の識別子を表す。同じ名前の Symbol は実行中つねに同じオブジェクトになる'
+    source: https://docs.ruby-lang.org/en/4.0/Symbol.html
+    quote: >-
+      A Symbol object represents a named identifier inside the Ruby interpreter.
+      The same Symbol object will be created for a given name or string for the duration of
+      a program's execution, regardless of the context or meaning of that name.
+      A Symbol object differs from a String object in that a Symbol object represents an
+      identifier, while a String object represents text or data.
+    note: >-
+      実測: :a.object_id == :a.object_id は true。"a".object_id == "a".object_id は
+      （frozen_string_literal が無ければ）false。手本の symbol_keyed が Hash のキーに
+      Symbol を使っているのはこの性質のため。
+
+  - id: c4
+    required: true
+    claim: '`encode` はバイト列を作り直す。`force_encoding` はバイト列を変えず、解釈するエンコーディングのラベルだけを変える'
+    source: https://docs.ruby-lang.org/en/4.0/String.html
+    quote: >-
+      encode: Returns a copy of `self` with all characters transcoded from one encoding
+      to another.
+      / force_encoding: Changes the encoding to a given encoding; returns `self`.
+    note: >-
+      実測: "あ".bytes は [227,129,130]。encode("EUC-JP").bytes は [164,162]（バイト列が変わる）。
+      force_encoding("ASCII-8BIT").bytes は [227,129,130] のまま（ラベルだけ変わる）。
+
+  - id: c5
+    required: false
+    claim: '文字列リテラルを並べて書くと、インタプリタが自動でつなげる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/literals_rdoc.html
+    quote: >-
+      Adjacent string literals are automatically concatenated by the interpreter.
+
+  - id: c6
+    required: false
+    claim: '`%w[...]` は空白区切りの語を文字列の配列にする'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/literals_rdoc.html
+    quote: >-
+      You can write an array of strings as whitespace-separated words with `%w`
+      (non-interpolable) or `%W` (interpolable).
+
+  - id: c7
+    required: false
+    claim: '`!` で終わるメソッド（`upcase!` など）は受け手そのものを書き換える。`!` の無いもの（`upcase`）は新しい文字列を返す'
+    source: https://www.ruby-lang.org/en/documentation/ruby-from-other-languages/
+    quote: >-
+      Potentially "dangerous" methods by convention end with exclamation marks
+      (e.g. methods that modify `self` or the arguments, `exit!`, etc.)
+    note: >-
+      実測: s = +"abc"; s.upcase! の後 s は "ABC"。"abc".upcase は "ABC" を返すが
+      元の文字列は変わらない。frozen な文字列に upcase! を呼ぶと FrozenError。
+      課題 2 で触れた ? と ! の命名規約の、! 側の実例。
+
+not_graded:
+  - topic: Encoding クラスと文字コードの詳細
+    note: 手本が触れるのは encode と force_encoding の差まで。深入りは実務で必要になったときに。
+  - topic: Hash そのものの操作
+    note: 課題 7（collections-enumerable）で正式に扱う。ここでは Symbol キーの例として出るだけ。
