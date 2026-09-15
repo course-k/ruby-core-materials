@@ -1,0 +1,99 @@
+# rb1-08 の claim 表 — why.md の照合に使う。作り方の規約は根幹 §3.1。
+task: rb1-08-methods-arguments
+
+claims:
+  - id: c1
+    required: true
+    claim: '位置引数は並び順で、キーワード引数は名前で対応づく。混ぜるときは位置引数が先に来る'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/methods_rdoc.html
+    quote: >-
+      The default value does not need to appear first, but arguments with defaults must be
+      grouped together.
+      / To require a specific keyword argument, do not include a default value for the
+      keyword argument.
+    note: >-
+      実測: def fill_in_the_middle(a, b = 2, c = 3, d) に (1, 4) を渡すと [1,2,3,4]、
+      (1, 9, 4) を渡すと [1,9,3,4]。**足りない分は既定値、必須の d は常に最後の実引数**
+      という順で埋まる。キーワードは順不同。
+
+  - id: c2
+    required: true
+    claim: '`*args` は残りの位置引数を配列にまとめる。`**opts` は残りのキーワード引数を Hash にまとめる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/methods_rdoc.html
+    quote: >-
+      Prefixing an argument with `*` causes any remaining arguments to be converted to an Array.
+      / Arbitrary keyword arguments will be accepted with `**`.
+    note: >-
+      実測: def gather_middle(f, *m, l) に (1,2,3,4) を渡すと [1, [2,3], 4]。
+      * は真ん中にも置ける（前後の必須引数を先に取り、残りが配列になる）。
+      def gather_keywords(first: nil, **rest) に (first: 1, a: 2, b: 3) を渡すと
+      [1, {a: 2, b: 3}]。
+    js_contrast: >-
+      JS のレストパラメータ ...args は最後にしか置けない。Ruby の * は真ん中に置ける。
+      JS にキーワード引数は無く、オブジェクトを 1 つ渡して分割代入するのが代替。
+
+  - id: c3
+    required: true
+    claim: 'メソッドは `return` を書かなければ最後に評価した式の値を返す。`return` は途中で抜けたいときに使う'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/methods_rdoc.html
+    quote: >-
+      By default, a method returns the last expression that was evaluated in the body of the
+      method.
+      / It can also be used to make a method return before the last expression is evaluated.
+    note: >-
+      手本の two_plus_two が return の後ろに 1 + 1 を置き、コメントで
+      「this expression is never evaluated」と明記している。
+
+  - id: c4
+    required: true
+    claim: '`?` で終わるメソッドは質問に答えるもの、`!` で終わるものは危険なもの（`self` や引数を書き換える等）という命名規約がある'
+    source: https://www.ruby-lang.org/en/documentation/ruby-from-other-languages/
+    quote: >-
+      By convention, methods that answer questions end in question marks
+      (e.g. `Array#empty?`, which returns `true` if the receiver is empty).
+      Potentially "dangerous" methods by convention end with exclamation marks
+      (e.g. methods that modify `self` or the arguments, `exit!`, etc.)
+    note: >-
+      規約であって文法ではない。処理系は戻り値も破壊性も強制しない。
+      課題 2（respond_to? / nil?）と課題 6（upcase!）で実例を見ている。
+
+  - id: c5
+    required: false
+    claim: '既定値には、先に評価された引数を書ける。引数は左から右へ評価される'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/methods_rdoc.html
+    quote: >-
+      Default argument values can refer to arguments that have already been evaluated as
+      local variables, and argument values are always evaluated left to right.
+    note: '実測: def sum_referring_to_earlier(a = 1, b = a) は引数なしで 2、(5) で 10。'
+
+  - id: c6
+    required: false
+    claim: '既定値のある引数は真ん中に置けるが、既定値のある引数どうしはまとめて並べる必要がある'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/methods_rdoc.html
+    quote: >-
+      The default value does not need to appear first, but arguments with defaults must be
+      grouped together.
+      / def add_values(a = 1, b, c = 1) は SyntaxError。
+
+  - id: c7
+    required: false
+    claim: '既定値を書かないキーワード引数は必須になる。渡さないと ArgumentError'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/methods_rdoc.html
+    quote: >-
+      To require a specific keyword argument, do not include a default value for the keyword
+      argument.
+    note: '実測: def require_keywords(first:, second:) に first だけ渡すと「missing keyword: :second」。'
+
+  - id: c8
+    required: false
+    claim: 'ブロック引数は `&` で受け、引数の最後に置く。`&` で受けなくても `yield` で呼べる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/methods_rdoc.html
+    quote: >-
+      The block argument is indicated by `&` and must come last.
+    note: >-
+      実測: yield を書いたメソッドをブロック無しで呼ぶと LocalJumpError（no block given）。
+      課題 9（blocks-procs）でブロックそのものを正式に扱う。
+
+not_graded:
+  - topic: "Proc と lambda の違い、&: の展開"
+    note: 課題 9（blocks-procs）で正式に扱う。質問されたら答える。

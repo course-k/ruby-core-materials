@@ -1,10 +1,28 @@
 # 模範解説 — rb1-08-methods-arguments
 
-`why.md` を書き終えてから開く。
+`why.md` の §1〜§3 を書き終えてから開く。読み終えたら §4「突き合わせで変わったこと」を書く。
 
-## 読み解き
+この解説は **前の節で分かったことの上に次の節が乗る順序**で並べてある。
+§2〜§5 は「何で対応づけるか」が段階的に変わる——**並び順 → 残り → 名前 → コードそのもの**。
+飛ばさずに読む。
 
-### 位置引数
+## 1. この手本は何を見せているか
+
+課題 2 で `def hi(name = "World")` を書き、既定値を知った。**この手本は、引数の渡し方を
+全部並べたカタログ**です。
+
+対応づけの手段で 4 つに分かれます。
+
+| 段 | 何で対応づくか | 定義 |
+|---|---|---|
+| §2 | **並び順** | `add_one` / `sum_with_default` / `sum_referring_to_earlier` / `fill_in_the_middle` |
+| §3 | **残り全部** | `gather_arguments` / `gather_middle` |
+| §4 | **名前** | `add_keywords` / `require_keywords` / `gather_keywords` |
+| §5 | **コードそのもの** | `call_the_block` / `yields_once` |
+
+そして戻り値（`one_plus_one` / `two_plus_two`）が §6。
+
+## 2. 並び順で対応づける — 位置引数
 
 ```ruby
 def add_one(value)
@@ -12,51 +30,105 @@ def add_one(value)
 end
 ```
 
-括弧は省ける（`def add_one value`）が、1 行で書く短縮形（`def add_one(value) = value + 1`）では必須。
-数が合わないと `ArgumentError` になる。
+いちばん単純な形。括弧は省けます（`def add_one value`）が、1 行の短縮形
+（`def add_one(value) = value + 1`）では必須。数が合わないと `ArgumentError`。
 
-### 既定値
+**既定値**を付けると、渡さなくてよくなります。
+
+> Default argument values can refer to arguments that have already been evaluated as local
+> variables, and argument values are always evaluated left to right.
+> — https://docs.ruby-lang.org/en/4.0/syntax/methods_rdoc.html
+
+**呼び出しのたびに、左から右へ**評価される。だから手本のこれが動きます。
 
 ```ruby
-def sum_with_default(a, b = 1)
+def sum_referring_to_earlier(a = 1, b = a)   # b の既定値が a を見ている
+  a + b
+end
 ```
 
-既定値を持つ引数はまとめて並べる必要がある。`(a = 1, b = 2, c)` は書けるが、
-`(a = 1, b, c = 1)` は `SyntaxError`。
+実測: 引数なしで `2`、`(5)` で `10`。逆順の `(a = b, b = 1)` は `NameError` になります。
 
-既定値は**呼び出しのたびに、左から右へ**評価される。だから
-`def sum_referring_to_earlier(a = 1, b = a)` は動く（`b` の既定値が `a` を見る）。
-逆に `(a = b, b = 1)` は `NameError` になる。
+**既定値は真ん中にも置けます。ただし条件がある。**
 
-既定値が中ほどにある `fill_in_the_middle(a, b = 2, c = 3, d)` の埋まり方は、
-Calling Methods の説明どおり「まず必須の `a` と `d` を端から埋め、
-残りを左から既定値つきの引数に配る」である。
+> The default value does not need to appear first, but arguments with defaults must be
+> grouped together.
 
-- `(1, 4)` → `a = 1`、`d = 4`、`b` と `c` は既定値 → `[1, 2, 3, 4]`
-- `(1, 5, 6)` → `a = 1`、`d = 6`、余った `5` を左の `b` へ → `[1, 5, 3, 6]`
+`(a = 1, b = 2, c)` は書けますが、`(a = 1, b, c = 1)` は `SyntaxError`。既定値つきの引数は
+**まとめて並べる**必要があります。
 
-### `*` — 残りを配列にまとめる
+手本の `fill_in_the_middle(a, b = 2, c = 3, d)` がその形です。埋まり方は「まず必須の `a` と
+`d` を端から埋め、残りを左から既定値つきの引数に配る」。
+
+```ruby
+fill_in_the_middle(1, 4)      #=> [1, 2, 3, 4]   ← b, c は既定値
+fill_in_the_middle(1, 9, 4)   #=> [1, 9, 3, 4]   ← 余った 9 は左の b へ
+```
+
+**ここまでで分かったこと**: 並び順で対応づく仕組みと、既定値の埋まり方。
+次は、並び順で決まらない「残り」の受け方。
+
+## 3. 残りをまとめて受ける — `*`
+
+> Prefixing an argument with `*` causes any remaining arguments to be converted to an Array.
+> — methods_rdoc
 
 ```ruby
 def gather_arguments(*arguments)
+  arguments
+end
+```
+
+渡されたものが全部 1 つの配列になります。`*` は 1 つだけ書けて、**前にも後ろにも必須の引数を
+置けます**。
+
+```ruby
 def gather_middle(first_arg, *middle_arguments, last_arg)
 ```
 
-`*` は 1 つだけ書ける。前や後ろに必須の引数を置いてもよい。
+実測: `(1,2,3,4)` を渡すと `[1, [2,3], 4]`。§2 と同じで、**端の必須を先に取り、残りが真ん中に
+集まる**。
 
-### キーワード引数
+JS のレストパラメータ `...args` は最後にしか置けません。Ruby の `*` は真ん中に置ける。
+
+**ここまでで分かったこと**: 位置での受け方は出尽くした。次は、位置をやめて名前で渡す。
+
+## 4. 名前で対応づける — キーワード引数
 
 ```ruby
-def add_keywords(first: 1, second: 2)   # 既定値つき
-def require_keywords(first:, second:)   # 既定値を書かなければ必須
-def gather_keywords(first: nil, **rest) # 残りのキーワードを Hash で受ける
+def add_keywords(first: 1, second: 2)     # 既定値つき
+def require_keywords(first:, second:)     # 既定値を書かなければ必須
+def gather_keywords(first: nil, **rest)   # 残りのキーワードを Hash で受ける
 ```
 
-- **順不同**で渡せる。
-- メソッドが受け付けないキーワードを渡すと `ArgumentError`（`**` を持つときは `rest` に入る）。
-- 位置引数とキーワード引数を混ぜるときは、位置引数が先。
+**並び順と無関係**になります。呼ぶ側は順不同で渡せる。
 
-### ブロック引数
+必須にする方法が独特です。
+
+> To require a specific keyword argument, do not include a default value for the keyword
+> argument.
+> — methods_rdoc
+
+**既定値を書かない**と必須になる。実測で `require_keywords(first: 1)` は
+`ArgumentError: missing keyword: :second`。
+
+`**` は §3 の `*` のキーワード版です。
+
+> Arbitrary keyword arguments will be accepted with `**`.
+
+実測: `gather_keywords(first: 1, a: 2, b: 3)` は `[1, {a: 2, b: 3}]`。受け付けないキーワードを
+渡すと通常は `ArgumentError` ですが、`**` があると `rest` に入ります。
+
+位置引数と混ぜるときは**位置引数が先**。
+
+JS にキーワード引数はありません。オブジェクトを 1 つ渡して分割代入するのが代替ですが、
+「必須かどうか」を言語が見てくれない点が違います。
+
+**ここまでで分かったこと**: 値の渡し方は全部。次は、値ではなく**コード**を渡す。
+
+## 5. コードを渡す — ブロック
+
+手本は 2 つの受け方を並べています。
 
 ```ruby
 def call_the_block(value, &my_block)   # Proc オブジェクトとして受け取る
@@ -68,25 +140,57 @@ def yields_once(value)                 # 受け取らずに yield で呼ぶ
 end
 ```
 
-原典は「ブロックを呼ぶだけで、他所へ渡したり加工したりしないなら、
-明示的なブロック引数を書かず `yield` を使うほうがよい」と勧めている。
-ブロックそのものは次の課題（課題 9）で正面から扱う。
+> The block argument is indicated by `&` and must come last.
+> — methods_rdoc
 
-### 戻り値
+**`&` で受けると変数になり、他所へ渡したり加工したりできる。** `yield` は受け取らずにその場で
+呼ぶだけ。原典は「ブロックを呼ぶだけで、他所へ渡したり加工したりしないなら、明示的な
+ブロック引数を書かず `yield` を使うほうがよい」と勧めています。
 
-`return` を書かなければ**最後に評価した式**が戻る。`return` は「途中で抜けたいとき」と
-「読み手に戻り値を明示したいとき」に書く。
+ブロックが渡されなかったら何が起きるか。実測: `yields_once(1)` をブロック無しで呼ぶと
+`LocalJumpError: no block given (yield)`。
 
-### `?` と `!`
+課題 7 で `map` や `each_with_object` にブロックを渡す側をやりました。**ここはその受け取る側**
+です。*ブロックそのもの（Proc と lambda の違い、`&:upcase` の展開）は課題 9 で正面から扱います。*
 
-どちらも**ただの慣習**で、言語が強制する意味は無い（メソッド名として使える文字というだけ）。
+**ここまでで分かったこと**: 引数の 4 通り。最後に、返す側。
 
-- `?` … 真偽を返すメソッド。ただし `true` / `false` とは限らず、真とみなせる何かを返すこともある。
-- `!` … 「危険」の印。標準ライブラリでは「受け手そのものを書き換える」ことを表す。
-  多くは `!` の付かない版が対になっていて、そちらは新しいオブジェクトを返す。
+## 6. 戻り値と、名前の末尾の記号
 
-`upcase!` は**変更が無かったときに `nil` を返す**。`"RUBY".dup.upcase!` が `nil` になるのがそれ。
-`s = s.upcase!` と書くと `nil` が入ることがある、というのが典型的な落とし穴である。
+> By default, a method returns the last expression that was evaluated in the body of the method.
+> It can also be used to make a method return before the last expression is evaluated.
+> — methods_rdoc
+
+手本が `return` の効き方を 2 つ並べています。
+
+```ruby
+def one_plus_one
+  return 1 + 1
+end
+
+def two_plus_two
+  return 2 + 2
+  1 + 1 # this expression is never evaluated
+end
+```
+
+コメントが言うとおり、`return` の後ろは**評価されません**。`return` を書くのは
+「途中で抜けたいとき」と「読み手に戻り値を明示したいとき」。
+
+最後に命名規約。課題 2（`respond_to?` / `nil?`）と課題 6（`upcase!`）で実例を見てきたものの
+まとめです。
+
+> By convention, methods that answer questions end in question marks
+> (e.g. `Array#empty?`, which returns `true` if the receiver is empty).
+> Potentially "dangerous" methods by convention end with exclamation marks
+> (e.g. methods that modify `self` or the arguments, `exit!`, etc.)
+> — https://www.ruby-lang.org/en/documentation/ruby-from-other-languages/
+
+**どちらもただの慣習**で、言語が強制する意味はありません（メソッド名に使える文字というだけ）。
+`?` が付いていても `true` / `false` とは限らず、真とみなせる何かを返すこともある。
+
+**ここまでで分かったこと**: この手本の全部。並び順（§2）→ 残り（§3）→ 名前（§4）→
+コード（§5）→ 返す側と命名（§6）。
 
 ## JS ではこうだが Ruby では
 

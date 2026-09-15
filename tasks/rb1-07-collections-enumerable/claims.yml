@@ -1,0 +1,104 @@
+# rb1-07 の claim 表 — why.md の照合に使う。作り方の規約は根幹 §3.1。
+task: rb1-07-collections-enumerable
+
+claims:
+  - id: c1
+    required: true
+    claim: '`map` はブロックの戻り値を集めた新しい配列を返す。`each` は繰り返すだけで、戻り値はレシーバ自身'
+    source: https://docs.ruby-lang.org/en/4.0/Enumerable.html
+    quote: >-
+      map / collect: Returns objects returned by the block.
+      / Implement method `each` which must yield successive elements of the collection.
+    note: >-
+      実測: a = [1,2,3]; a.each { } は a 自身を返す（equal? が true）。
+      map は新しい配列 [1,4,9] を返す。手本の each_collects が
+      [集めた配列, each の戻り値] を返してこの差を見せている。
+    js_contrast: >-
+      JS の forEach は undefined を返し、map は新しい配列を返す。
+      map の側は同じだが、each が「レシーバ自身」を返すのは Ruby 固有で、
+      メソッドチェーンを続けられる。
+
+  - id: c2
+    required: true
+    claim: '`inject` / `reduce` は初期値を省くと、最初の要素が初期値になり、2 番目の要素から畳み込みが始まる'
+    source: https://docs.ruby-lang.org/en/4.0/Enumerable.html
+    quote: >-
+      Returns the object formed by combining all elements.
+      / (1..4).inject {|sum, n| sum + n } # => 10
+    note: >-
+      原文の例が「初期値を省くと最初の要素が初期値になる」ことを示している
+      （(1..4).inject { |sum,n| sum+n } が 10。1+2+3+4 であって 0+1+2+3+4 ではない）。
+      実測: [2,3,4].reduce { |a,x| a*x } は 24、[2,3,4].inject(1) { |a,x| a*x } も 24。
+      要素が空のとき、初期値を省くと nil が返る（[].reduce { } は nil）。
+      初期値を書くかどうかは、空のときに何を返してほしいかで決まる。
+
+  - id: c3
+    required: true
+    claim: '`group_by` は「ブロックの戻り値 => その要素の配列」の Hash を返す。`tally` は「要素 => 出現回数」の Hash を返す'
+    source: https://docs.ruby-lang.org/en/4.0/Enumerable.html
+    quote: >-
+      group_by: Returns a Hash that partitions the elements into groups.
+      / tally: Returns a new Hash containing the counts of occurrences of each element.
+    note: >-
+      実測: (1..6).group_by { |i| i % 3 } は {1=>[1,4], 2=>[2,5], 0=>[3,6]}。
+      %w[a b a c a].tally は {"a"=>3, "b"=>1, "c"=>1}。
+      group_by は要素を残し、tally は数だけを残す。数えるだけなら tally。
+
+  - id: c4
+    required: true
+    claim: '`each_with_object(obj)` はブロックに「要素」と「渡した obj」の 2 つを渡し、obj を返す'
+    source: https://docs.ruby-lang.org/en/4.0/Enumerable.html
+    quote: >-
+      Calls the block with each successive element and a given object.
+    note: >-
+      実測: (1..3).each_with_object([]) { |i, acc| acc.push(i**2) } は [1,4,9]。
+      第 1 ブロック引数が要素、第 2 が集める先。inject と引数の順が逆なので注意
+      （inject は |累積, 要素|）。
+
+  - id: c5
+    required: false
+    claim: 'Enumerable が要求するのは `each` ただ 1 つ。それを実装すれば map・select・group_by などが全部使える'
+    source: https://docs.ruby-lang.org/en/4.0/Enumerable.html
+    quote: >-
+      Implement method `each` which must yield successive elements of the collection.
+    note: 課題 13（modules-mixins）で「Enumerable を include したクラスに each を書く」として再訪する。
+
+  - id: c6
+    required: false
+    claim: '`select` はブロックが真を返した要素を残し、`reject` は真を返した要素を捨てる。判定は真偽であって、`nil` は偽'
+    source: https://docs.ruby-lang.org/en/4.0/Enumerable.html
+    quote: >-
+      select / filter: Returns elements selected by the block.
+      / reject: Returns elements not rejected by the block.
+    note: >-
+      実測: (1..6).reject { |i| i * 2 if i.even? } は [1,3,5]。
+      奇数のときブロックは nil（後置 if が偽）を返し、nil は偽なので捨てられない。
+      「2 倍した値」ではなく「真偽」で判定されている——課題 4 の真偽の規則がここで効く。
+
+  - id: c7
+    required: false
+    claim: '`(1..2)` は終端を含み、`(1...2)` は含まない'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/literals_rdoc.html
+    quote: >-
+      Ranges may be created with the `..` (inclusive) and `...` (exclusive) operators.
+    note: '実測: (1..2).to_a は [1,2]、(1...2).to_a は [1]。'
+
+  - id: c8
+    required: false
+    claim: 'Hash のキーには任意のオブジェクトが使える（配列でも Symbol でも文字列でも）'
+    source: https://docs.ruby-lang.org/en/4.0/Hash.html
+    quote: >-
+      A Hash object maps each of its unique keys to a specific value.
+      An array index is always an integer. A hash key can be (almost) any object.
+    note: >-
+      手本の any_key_hash が { [1,2] => "pair", :sym => "symbol", "str" => "string" } を返す。
+      何が「同じキー」かの判定は課題 14（eql? と hash）で扱う。
+    js_contrast: >-
+      JS のオブジェクトのキーは文字列と Symbol だけ（それ以外は文字列化される）。
+      任意のオブジェクトをキーにするには Map が要る。Ruby の Hash は最初からそれができる。
+
+not_graded:
+  - topic: ブロックそのものの仕組み（yield・Proc・lambda）
+    note: 課題 9（blocks-procs）で正式に扱う。ここではブロックを使う側にだけ触れる。
+  - topic: eql? と hash による同一キーの判定
+    note: 課題 14（equality-value-objects）で正式に扱う。
