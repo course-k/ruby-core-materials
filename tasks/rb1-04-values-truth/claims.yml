@@ -1,0 +1,73 @@
+# rb1-04 の claim 表 — why.md の照合に使う。作り方の規約は根幹 §3.1。
+task: rb1-04-values-truth
+
+claims:
+  - id: c1
+    required: true
+    claim: '`if` は式で、値を返す。だから変数に代入できる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/control_expressions_rdoc.html
+    quote: >-
+      The result value of an `if` expression is the last value executed in the expression.
+    note: '実測: r = if 0 then "0 is true" else "0 is false" end #=> "0 is true"'
+    js_contrast: >-
+      JS の if は文（statement）で値を持たない。値が要るときは三項演算子か関数に切り出す。
+      Ruby は if そのものが値を持つので、その必要が無い。
+
+  - id: c2
+    required: true
+    claim: 'Ruby で偽になるのは `nil` と `false` の 2 つだけ。`0` も `""` も `[]` も真'
+    source: https://www.ruby-lang.org/en/documentation/ruby-from-other-languages/
+    quote: >-
+      In Ruby, everything except `nil` and `false` is considered true.
+      In C, Python and many other languages, 0 and possibly other values, such as empty
+      lists, are considered false.
+    note: '実測: [nil, false, 0, "", [], {}, "0"].reject { |v| v } #=> [nil, false]'
+    js_contrast: >-
+      JS の falsy は false・0・-0・0n・""・null・undefined・NaN の 8 つ。
+      Ruby は 2 つしかないので、JS で `if (list.length)` や `if (str)` と書いていた形が
+      Ruby では常に真になる。空かどうかは empty? で聞く。
+
+  - id: c3
+    required: true
+    claim: '`case`/`when` は `===` で照合する。`===` は Object では `==` と同じだが、クラスによって意味が変わる'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/control_expressions_rdoc.html
+    quote: >-
+      The patterns are matched using the `===` method which is aliased to `==` on Object.
+    note: '実測: /^1/ === "123" #=> true、/^1/ == "123" #=> false。同じだと思って書くとここで食い違う。'
+
+  - id: c4
+    required: false
+    claim: '`when` には値を複数並べられる。Ruby は順に試す'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/control_expressions_rdoc.html
+    quote: >-
+      You may place multiple conditions on the same `when`. / Ruby will try each condition in turn.
+
+  - id: c5
+    required: false
+    claim: '`when` の後ろに `then` を置くと本体を 1 行に書ける'
+    source: https://docs.ruby-lang.org/en/4.0/syntax/control_expressions_rdoc.html
+    quote: >-
+      You may use `then` after the `when` condition. This is most frequently used to place
+      the body of the `when` on a single line.
+
+  - id: c6
+    required: false
+    claim: '`nil` は `NilClass` の唯一のオブジェクト。`nil?` が真を返すのは `nil` だけ'
+    source: https://docs.ruby-lang.org/en/4.0/NilClass.html
+    quote: >-
+      The class of the singleton object `nil`.
+      / Returns `true`. For all other objects, method `nil?` returns `false`.
+
+  - id: c7
+    required: false
+    claim: 'Object の `==` は同一性を見る。多くのクラスがこれを上書きして値の比較にしている'
+    source: https://docs.ruby-lang.org/en/4.0/Object.html
+    quote: >-
+      Returns `true` only if `obj` and `other` are the same object.
+    note: 等価性そのもの（== / eql? / equal?）は課題 14 で正式に扱う。
+
+not_graded:
+  - topic: 等価性の 3 種（== / eql? / equal?）と hash
+    note: 課題 14（equality-value-objects）で正式に扱う。質問されたら答える。
+  - topic: パターンマッチ（case ... in）
+    note: 課題 15（pattern-matching）で正式に扱う。case ... when との違いはそこで。

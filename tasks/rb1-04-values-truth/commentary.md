@@ -1,66 +1,168 @@
 # 模範解説 — rb1-04-values-truth
 
-`why.md` を書き終えてから開く。
+`why.md` の §1〜§3 を書き終えてから開く。読み終えたら §4「突き合わせで変わったこと」を書く。
 
-## 読み解き
+この解説は **前の節で分かったことの上に次の節が乗る順序**で並べてある。
+§4（`case`）は §2（すべてが式）と §3（真偽の規則）の両方を使う。飛ばさずに読む。
 
-### すべての式が値を持つ
+## 1. この手本は何を見せているか
+
+課題 2 で「メソッドの戻り値は最後に評価した式の値」と出てきた。その「式」が Ruby では
+どこまで広いのか、そして「真」とは何か——**この 2 つだけ**を、6 つの小さなメソッドで見せる手本。
+
+| 定義 | 何を見せるか |
+|---|---|
+| `bigger?` | 分岐が値を返すこと |
+| `zero_is_true` | `0` が真であること |
+| `FALSEY` / `falsey_values` | 偽なのは何と何か |
+| `print_hello_world` | `puts` の戻り値 |
+| `starts_with_one` | `case` が正規表現で照合できること |
+| `label_for` | `when` の複数値と `then` |
+
+前半 3 つが「真偽」、後半 3 つが「式と `case`」です。
+
+## 2. すべての式が値を持つ
+
+`bigger?` を見ます。
 
 ```ruby
-z = if x < y
-      true
-    else
-      false
-    end
+def bigger?(x, y)
+  if x < y
+    true
+  else
+    false
+  end
+end
 ```
 
-Ruby には「文（statement）」と「式（expression）」の区別が実質的に無い。
-`if` も `case` も `while` も値を返し、その値を代入できる。返るのは
-**最後に評価された式の値**である。
+`return` がありません。書かなくてよい理由は 2 段あります。
 
-この性質は至る所に効く。メソッドの戻り値に `return` が要らないのも
-（メソッド本体の最後の式の値が戻る）、`x = y = 0` と書けるのも、同じ理由である。
+> The result value of an `if` expression is the last value executed in the expression.
+> — https://docs.ruby-lang.org/en/4.0/syntax/control_expressions_rdoc.html
 
-### `nil` と `false` だけが偽
+**`if` そのものが値を返す。** `if` 全体が 1 つの式で、その値がメソッドの最後の式の値、
+つまり戻り値になる。実測でも代入できます。
 
-Literals の Boolean and Nil Literals 節がこう書いている——
-「`nil` と `false` はどちらも偽の値」「`nil` と `false` 以外のすべてのオブジェクトは、
-条件式で真の値に評価される」。
+```ruby
+r = if 0 then "0 is true" else "0 is false" end
+#=> "0 is true"
+```
 
-つまり `0`・`""`（空文字列）・`[]`（空配列）・`{}`（空ハッシュ）・`"0"` は**すべて真**である。
-「Ruby From Other Languages」がわざわざ節（The universal truth）を立てているのは、
-他の言語から来た人がここで踏むからである。
+JS の `if` は文で値を持たないので、値が要るときは三項演算子か関数に切り出す必要がありました。
+Ruby はその必要がありません。**「すべての式が値を持つ」**は、以降ずっと効いてくる性質です。
 
-### `nil` はオブジェクト
+`print_hello_world` は逆から同じことを見せています。`puts` は画面に出しますが、
+**戻り値は `nil`**（実測）。だからこのメソッドの戻り値も `nil` です。「値を返さない」のではなく
+「`nil` という値を返す」。
 
-`nil` は「何も無い」を表す**オブジェクト**であり、`NilClass` の唯一のインスタンスである。
-だから `nil.nil?` も `nil.to_s`（`""` が返る）も呼べる。
-`nil` に対して定義されていないメソッドを呼ぶと `NoMethodError` になるが、
-これは「`nil` が特別だから」ではなく「`NilClass` にそのメソッドが無いから」である。
+**ここまでで分かったこと**: `if` を含めて何もかもが値を持つ。次は、その値が分岐で
+どう扱われるか——「真」の定義。
 
-### `puts` の戻り値
+## 3. 真と偽の境目
 
-`result = puts "Hello World"` の `result` は `nil` になる。
-「すべての式が値を持つ、たとえその値が `nil` であっても」という原典の言い方がそのまま当てはまる。
+`zero_is_true` が答えを名前で言っています。
 
-### `===` は等値ではない
+```ruby
+def zero_is_true
+  if 0
+    "0 is true"
+  else
+    "0 is false"
+  end
+end
+```
 
-`case … when` は、`when` に書いたものを左辺にして `===` を呼ぶ。
-つまり `case "12345" / when /^1/` は `/^1/ === "12345"` を評価している。
+> In Ruby, everything except `nil` and `false` is considered true.
+> In C, Python and many other languages, 0 and possibly other values, such as empty lists,
+> are considered false.
+> — https://www.ruby-lang.org/en/documentation/ruby-from-other-languages/
 
-`===` の意味は受け手のクラスごとに違う。
+**偽なのは `nil` と `false` の 2 つだけ。** `FALSEY` と `falsey_values` がそれを実演します。
 
-- `Object#===` … 既定では `==` と同じ（つまり等値）。
-- `Module#===` … 右辺がそのクラス（か子孫）のインスタンスかどうか。`String === "12345"` は真。
-- `Regexp#===` … 右辺が正規表現に一致するかどうか。
+```ruby
+FALSEY = [nil, false, 0, "", [], {}, "0"].freeze
 
-**`===` は「等しいか」を尋ねる演算子ではない**。「この `when` の枝はこの値を引き受けるか」を
-尋ねる演算子だと読む。等値を確かめたいときは `==` を使う。
+def falsey_values
+  FALSEY.reject { |value| value }
+end
+```
 
-### `when 1, 2 then …`
+`reject` は「ブロックが真を返した要素を捨てる」ので、残るのは偽の要素だけ。
+実測の結果は `[nil, false]` で、**7 つ並べても 2 つしか残りません**。
 
-1 つの `when` に複数の条件を並べられる。`then` を付けると 1 行に書ける。
-上から順に試し、最初に当たった枝だけが実行される。
+JS から来ると、ここが一番踏みます。JS の falsy は `false`・`0`・`-0`・`0n`・`""`・`null`・
+`undefined`・`NaN` の 8 つ。`if (list.length)` や `if (str)` と書いていた形は、Ruby では
+**常に真**になります。空かどうかは `empty?` で聞く。
+
+`nil` は特別な値に見えますが、これもオブジェクトです。
+
+> The class of the singleton object `nil`.
+> Returns `true`. For all other objects, method `nil?` returns `false`.
+> — https://docs.ruby-lang.org/en/4.0/NilClass.html
+
+`NilClass` の唯一のオブジェクトで、`nil.nil?` が真を返す。**`nil` にもメソッドが呼べる**という
+のが JS の `null`（プロパティを触ると TypeError）との大きな差です。
+
+**ここまでで分かったこと**: 何が真で何が偽か。次は、この真偽の仕組みの上に `case` が乗る。
+
+## 4. `case` は `===` で照合する
+
+`starts_with_one` を見ます。
+
+```ruby
+def starts_with_one(text)
+  case text
+  when /^1/
+    "the string starts with one"
+  else
+    "I don't know what the string starts with"
+  end
+end
+```
+
+`when` に**正規表現**が書いてあります。`text == /^1/` では絶対に真になりません。では何で
+比べているのか。
+
+> The patterns are matched using the `===` method which is aliased to `==` on Object.
+> — control_expressions_rdoc
+
+**`===` です。** そして `===` は Object では `==` と同じですが、クラスごとに上書きされています。
+実測:
+
+```ruby
+/^1/ === "123"   #=> true    ← Regexp が「マッチするか」に上書きしている
+/^1/ == "123"    #=> false   ← こちらはただの等価比較
+```
+
+`==` と同じだと思って書くと、ここで食い違います。`when` に書けるのは値だけではなく、
+**「`===` が真を返すもの」なら何でも**——正規表現、クラス（`when String`）、範囲（`when 1..5`）。
+1 つの構文でこれだけ扱えるのは `===` を経由しているからです。
+
+`label_for` は `when` の書き方を 2 つ見せています。
+
+```ruby
+def label_for(a)
+  case a
+  when 1, 2 then "a is one or two"
+  when 3 then "a is three"
+  else "I don't know what a is"
+  end
+end
+```
+
+> You may place multiple conditions on the same `when`. / Ruby will try each condition in turn.
+> You may use `then` after the `when` condition. This is most frequently used to place the
+> body of the `when` on a single line.
+> — control_expressions_rdoc
+
+カンマ区切りで複数、`then` で 1 行。そして `case` 全体も**式なので値を返します**（§2）。
+`label_for` に `return` が無いのはそのためです。
+
+*`case ... in`（パターンマッチ）は別物で、課題 15 で扱います。`when` が `===` を聞くのに対し、
+`in` は構造を分解します。*
+
+**ここまでで分かったこと**: この手本の全部。式が値を持つ（§2）→ 真偽の規則（§3）→
+その上に `case` と `===` が乗る（§4）。
 
 ## JS ではこうだが Ruby では
 

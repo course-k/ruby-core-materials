@@ -1,0 +1,94 @@
+# rb1-03 の claim 表 — why.md の照合に使う。
+#
+# 作り方の規約は根幹 §3.1。claim は一次情報に書かれていることだけを立て、
+# source は版固定 URL か、この課題の手本が冒頭コメントで挙げる底本に限る。
+# minitest は Ruby 4.0.6 同梱の v6.0.0 を底本にする（手本冒頭が指す版）。
+task: rb1-03-testing-basics
+
+claims:
+  - id: c1
+    required: true
+    claim: 'テストは `test_` で始まるメソッドとして定義する。この接頭辞が無いメソッドは実行されない'
+    source: https://github.com/minitest/minitest/blob/v6.0.0/README.rdoc
+    quote: >-
+      Define your tests as methods beginning with `test_`.
+      Use assertions to test for results or state.
+    note: >-
+      実測: test_ で始まらないメソッドを持つテストクラスを走らせると runs に数えられない
+      （def check_x と def test_y を持つクラスで「1 runs」）。
+
+  - id: c2
+    required: true
+    claim: '`assert_equal` の第 1 引数が期待値、第 2 引数が実際の値。失敗表示は Expected / Actual の順に出る'
+    source: https://github.com/minitest/minitest/blob/v6.0.0/lib/minitest/assertions.rb
+    quote: >-
+      Fails unless `exp == act` printing the difference between the two, if possible.
+      / def assert_equal exp, act, msg = nil
+    note: >-
+      実測: assert_equal "expected", "actual" の失敗表示は
+      「Expected: "expected" / Actual: "actual"」。入れ替えると表示も入れ替わるだけで
+      テストは通らないままなので、失敗表示が読めなくなるのが実害。
+    js_contrast: >-
+      Jest の expect(actual).toBe(expected) は実際の値が先。minitest は逆で期待値が先。
+
+  - id: c3
+    required: true
+    claim: '`assert_raises` はブロックの中で指定した例外が発生することを確かめ、捕まえた例外オブジェクトを返す'
+    source: https://github.com/minitest/minitest/blob/v6.0.0/lib/minitest/assertions.rb
+    quote: >-
+      Fails unless the block raises one of `exp`. Returns the exception matched so you can
+      check the message, attributes, etc.
+      `exp` takes an optional message on the end to help explain failures and defaults to
+      StandardError if no exception class is passed.
+
+  - id: c4
+    required: false
+    claim: '`assert` は真であること、`refute` は偽であることを確かめる。判定は「真であるか」であって「true と等しいか」ではない'
+    source: https://github.com/minitest/minitest/blob/v6.0.0/lib/minitest/assertions.rb
+    quote: >-
+      Fails unless `test` is truthy. / Fails if `test` is truthy.
+    js_contrast: >-
+      Ruby で偽なのは false と nil の 2 つだけ。JS の falsy（0・""・NaN）とは範囲が違う
+      （課題 4 で正式に扱う）。
+
+  - id: c5
+    required: false
+    claim: '`assert_nil` は対象が `nil` であることを確かめる'
+    source: https://github.com/minitest/minitest/blob/v6.0.0/lib/minitest/assertions.rb
+    quote: >-
+      Fails unless `obj` is nil
+
+  - id: c6
+    required: false
+    claim: '`skip` はそのテストの実行を飛ばす。飛ばしても失敗にはならない'
+    source: https://github.com/minitest/minitest/blob/v6.0.0/lib/minitest/assertions.rb
+    quote: >-
+      Skips the current run. If run in verbose-mode, the skipped run gets listed at the end
+      of the run but doesn't cause a failure exit code.
+
+  - id: c7
+    required: false
+    claim: '`setup` は各テストメソッドの前に走る。手本では `@meme` をここで用意している'
+    source: https://github.com/minitest/minitest/blob/v6.0.0/README.rdoc
+    quote: >-
+      class TestMeme < Minitest::Test
+        def setup
+          @meme = Meme.new
+        end
+
+  - id: c8
+    required: false
+    claim: '自作の例外は `StandardError` を継承して作る'
+    source: https://docs.ruby-lang.org/en/4.0/language/exceptions_md.html
+    quote: >-
+      To provide additional or alternate information, you may create custom exception classes.
+      Each should be a subclass of one of the built-in exception classes
+      (commonly StandardError or RuntimeError).
+      / class MyException < StandardError; end
+    note: 例外そのものは課題 11 で正式に扱う。ここでは assert_raises の的として出てくるだけ。
+
+not_graded:
+  - topic: minitest が Ruby 同梱の gem であること
+    note: 課題 18（stdlib-lookup）で「同梱 gem と そうでない gem」の差として扱う。
+  - topic: 例外の設計（rescue / ensure / retry）
+    note: 課題 11（exceptions）で正式に扱う。質問されたら答える。
