@@ -210,6 +210,7 @@ end
 # 機械の記録 <成果リポ>/.check/<課題番号>.yml（学習者が書く progress.md とは役割を分ける）
 class StateFile
   def initialize(repo, task_id)
+    @repo = repo
     @path = File.join(repo, ".check", "#{task_id}.yml")
     @task_id = task_id
     @data = File.file?(@path) ? (YAML.safe_load_file(@path) || {}) : {}
@@ -239,6 +240,7 @@ class StateFile
     @data["status"] = status
     @data["passed_at"] ||= now if status == "passed"
     save!
+    ProgressTable.sync!(@repo)
   end
 
   private
@@ -248,6 +250,68 @@ class StateFile
   def save!
     FileUtils.mkdir_p(File.dirname(@path))
     File.write(@path, @data.to_yaml)
+  end
+end
+
+# 進捗台帳 <成果リポ>/progress.md の課題ごとの表（根幹 §8）。
+# 正本は .check/<課題番号>.yml で、この表はその派生ビュー。record_check! のたびに書き直す。
+# 学習者が手で書くのは表の外（週あたりの目標・未消化にした課題・想起セッションの記録）。
+class ProgressTable
+  BEGIN_MARK = "<!-- bin/check:table start — この表は bin/check が書く。手で編集しない -->"
+  END_MARK   = "<!-- bin/check:table end -->"
+
+  STATUS_LABEL = { "passed" => "完了", "in_progress" => "進行中", "failed" => "進行中" }.freeze
+
+  def self.sync!(repo)
+    new(repo).sync!
+  rescue StandardError => e
+    # 表の生成に失敗しても判定は妨げない（正本は .check/ にある）
+    warn "progress.md の表を更新できませんでした: #{e.message}"
+  end
+
+  def initialize(repo)
+    @repo = repo
+    @path = File.join(repo, "progress.md")
+  end
+
+  def sync!
+    return unless File.file?(@path)
+
+    body = File.read(@path)
+    return unless body.include?(BEGIN_MARK) && body.include?(END_MARK)
+
+    File.write(@path, body.sub(/#{Regexp.escape(BEGIN_MARK)}.*?#{Regexp.escape(END_MARK)}/m, table))
+  end
+
+  private
+
+  def rows
+    Dir.glob(File.join(@repo, ".check", "*.yml")).sort.filter_map do |f|
+      d = YAML.safe_load_file(f) || {}
+      id = d["task"] || File.basename(f, ".yml")
+      label = STATUS_LABEL[d["status"]]
+      next unless label
+
+      stamp = d["status"] == "passed" ? d["passed_at"] : d["last_checked_at"]
+      [id, label, stamp.to_s[0, 10], why_link(id)]
+    end
+  end
+
+  # 課題ごとのメモの置き場。書き写し課題は why.md、それ以外は notes.md（同じ列に並べる）。
+  def why_link(id)
+    %w[why.md notes.md].each do |name|
+      return "[#{name}](#{id}/#{name})" if File.file?(File.join(@repo, id, name))
+    end
+    ""
+  end
+
+  def table
+    lines = [BEGIN_MARK, "", "| 課題番号 | 状態 | 日付 | なぜこう書くか |", "|---|---|---|---|"]
+    r = rows
+    lines << "| （まだ着手した課題がありません） | | | |" if r.empty?
+    r.each { |cells| lines << "| #{cells.join(' | ')} |" }
+    lines.concat(["", END_MARK])
+    lines.join("\n")
   end
 end
 
