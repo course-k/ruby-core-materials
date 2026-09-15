@@ -118,11 +118,16 @@ cp ruby-core-materials/tasks/rb1-15-pattern-matching/why.md ruby-core/rb1-15-pat
 
 ### 手順 5.5 — 一次情報と照らす（任意）
 
-```
-/why-review rb1-15-pattern-matching
-```
+**これは端末で打つコマンドではない。** Claude Code（対話しながら作業を頼める道具。
+端末で `claude` と打って起動する）を立ち上げた状態で、その入力欄に次の 1 行を打つ。
 
-教材リポの claim 表（`tasks/rb1-15-pattern-matching/claims.yml`）と `why.md` を突き合わせ、
+> `/why-review rb1-15-pattern-matching`
+
+`/why-review` は、この学習計画のために用意した Claude Code の **skill**——手順をあらかじめ
+書いておいて名前で呼び出す仕組みで、端末のコマンドとは別物。Claude Code を使っていなければ
+**この手順は飛ばす**。任意の手順なので、飛ばしても課題は完了する。
+
+走らせると、教材リポの claim 表（`tasks/rb1-15-pattern-matching/claims.yml`）と `why.md` を突き合わせ、
 claim ごとに一致度（一致 / 部分 / ずれ / 未言及）と到達時点（自力 / 突き合わせ後 / 未）を返す。
 続けて §3 の質問に答える。答えには一次情報の URL と原文の引用が必ず付くので、
 納得できないところは原典を自分で確かめられる。claim 表がまだ無い課題では、その場で作られる。
